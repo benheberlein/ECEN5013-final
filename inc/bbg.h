@@ -9,10 +9,10 @@
 *
 *******************************************************************************/
 /**
- * @file speak.c
- * @brief Speaker task
+ * @file bbg.h
+ * @brief Beagle Bone Green main file
  * 
- * This task controls playback out of the speakers connected to the BBG.
+ * This file contains the main task for the Beagle Bone Green.
  *
  * @author Ben Heberlein
  * @date Dec 2 2017
@@ -20,14 +20,43 @@
  *
  */
 
-uint8_t speak_init(msg_t *rx) {
+#ifndef __BBG_H__
+#define __BBG_H__
 
-}
+/**
+ * @brief Error codes 
+ */
+#define BBG_SUCCESS     0
+#define BBG_ERR_STUB    126
+#define BBG_ERR_UKNOWN  127
 
-uint8_t speak_speak(msg_t *rx) {
+/**
+ * @brief Task API Definitions
+ * ---------------------------
+ */
 
-}
+/**
+ * @brief BBG heartbeat handler
+ *
+ * DATA none
+ */ 
+uint8_t bbg_heartbeat(msg_t *rx);
 
-uint8_t speak_kill(msg_t *rx) {
+/**
+ * @brief Exit BBG program
+ *
+ * DATA none
+ */
+uint8_t bbg_exit(msg_t *rx);
 
-}
+/**
+ * @brief Private functions
+ * ------------------------
+ */
+
+/**
+ * @brief Main task 
+ */
+int main(void);
+
+#endif /*__BBG_H__*/

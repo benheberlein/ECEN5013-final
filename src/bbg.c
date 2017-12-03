@@ -9,15 +9,25 @@
 *
 *******************************************************************************/
 /**
- * @file template.c
- * @brief Brief description
+ * @file bbg.c
+ * @brief Beagle Bone Green main file
  * 
- * In depth description.
+ * This file contains the main task for the Beagle Bone Green.
  *
  * @author Ben Heberlein
- * @date Nov 2 2017
+ * @date Dec 2 2017
  * @version 1.0
  *
  */
 
+uint8_t bbg_heartbeat(msg_t *rx) {
 
+}
+
+uint8_t bbg_exit(msg_t *rx) {
+
+}
+
+int main(void) {
+
+}

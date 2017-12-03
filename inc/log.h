@@ -9,7 +9,7 @@
 *
 *******************************************************************************/
 /**
- * @file log.c
+ * @file log.h
  * @brief Log task
  * 
  * This task will log messages to a file. The messages can be of several levels
@@ -21,18 +21,52 @@
  *
  */
 
-uint8_t log_init(msg_t *rx) {
+#ifndef __LOG_H__
+#define __LOG_H__
 
-}
+/**
+ * @brief Error codes
+ */
+#define LOG_SUCCESS     0
+#define LOG_ERR_STUB    126
+#define LOG_ERR_UNKNOWN 127
 
-uint8_t log_log(msg_t *rx) {
+/**
+ * @brief Task API Definitions
+ * ---------------------------
+ */
 
-}
+/**
+ * @brief Initialize log
+ *
+ * DATA none
+ */
+uint8_t log_init(msg_t *rx);
 
-uint8_t log_setpath(msg_t *rx) {
+/**
+ * @brief Log to file
+ *
+ * DATA none
+ */
+uint8_t log_log(msg_t *rx);
 
-}
+/**
+ * @brief Set new filepath
+ *
+ * DATA none
+ */
+uint8_t log_setpath(msg_t *rx);
 
-uint8_t log_kill(msg_t *rx) {
+/**
+ * @brief Kill log task gracefully
+ *
+ * DATA none
+ */
+uint8_t log_kill(msg_t *rx);
 
-}
+/**
+ * @brief Private functions
+ * ------------------------
+ */
+
+#endif /*__LOG_H__*/

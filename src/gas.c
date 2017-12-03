@@ -9,15 +9,33 @@
 *
 *******************************************************************************/
 /**
- * @file template.c
- * @brief Brief description
+ * @file gas.c
+ * @brief The gas sensor task
  * 
- * In depth description.
+ * This task is responsible for setting up and maintaining the gas sensor.
  *
  * @author Ben Heberlein
- * @date Nov 2 2017
+ * @date Dec 2 2017
  * @version 1.0
  *
  */
 
+uint8_t gas_init(msg_t *rx) {
 
+}
+
+uint8_t gas_shutdown(msg_t *rx) {
+
+}
+
+uint8_t gas_wakeup(msg_t *rx) {
+
+}
+
+uint8_t gas_period(msg_t *rx) {
+
+}
+
+uint8_t gas_kill(msg_t *rx) {
+
+}

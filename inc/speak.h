@@ -9,7 +9,7 @@
 *
 *******************************************************************************/
 /**
- * @file speak.c
+ * @file speak.h
  * @brief Speaker task
  * 
  * This task controls playback out of the speakers connected to the BBG.
@@ -20,14 +20,45 @@
  *
  */
 
-uint8_t speak_init(msg_t *rx) {
+#ifndef __SPEAK_H__
+#define __SPEAK_H__
 
-}
+/**
+ * @brief Error codes
+ */
+#define SPEAK_SUCCESS       0
+#define SPEAK_ERR_STUB      0
+#define SPEAK_ERR_UNKNOWN   0
 
-uint8_t speak_speak(msg_t *rx) {
+/**
+ * @brief Task API Definitions
+ * ---------------------------
+ */
 
-}
+/**
+ * @brief Initialize speaker
+ *
+ * DATA none
+ */
+uint8_t speak_init(msg_t *rx);
 
-uint8_t speak_kill(msg_t *rx) {
+/**
+ * @brief Play sound from associated list
+ *
+ * DATA 1 byte of message ID
+ */
+uint8_t speak_speak(msg_t *rx);
 
-}
+/**
+ * @brief Kill task gracefully
+ *
+ * DATA none
+ */
+uint8_t speak_kill(msg_t *rx);
+
+/**
+ * @brief Private functions
+ * ------------------------
+ */
+
+#endif /*__SPEAK_H__*/

@@ -21,10 +21,44 @@
  *
  */
 
-uint8_t tiva_heartbeat(msg_t *rx) {
+#ifndef __TIVA_H__
+#define __TIVA_H__
 
-}
+/**
+ * @brief Error codes
+ */
+#define TIVA_SUCCESS        0
+#define TIVA_ERR_STUB       126
+#define TIVA_ERR_UNKNOWN    127
 
-uint8_t tiva_exit(msg_t *rx) {
+/**
+ * @brief Task API Definitions
+ * ---------------------------
+ */
 
-}
+/**
+ * @brief TIVA heartbeat handler
+ *
+ * DATA none
+ */
+uint8_t tiva_heartbeat(msg_t *rx);
+
+/**
+ * @brief Exit TIVA program
+ *
+ * Data none
+ */
+uint8_t tiva_exit(msg_t *rx);
+
+/**
+ * @brief Private functions
+ * ------------------------
+ */
+
+/**
+ * @brief Main task
+ */
+
+int maint(void);
+
+#endif /*__TIVA_H__*/
