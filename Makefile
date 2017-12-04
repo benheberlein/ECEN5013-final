@@ -19,15 +19,23 @@ TARGET = tiva
 # MCU: part number to build for
 MCU = TM4C1294XL
 # SOURCES: list of input source sources
-SOURCES = main.c startup_gcc.c
+SOURCES = main.c \
+		  startup_gcc.c \
+		  task.c \
+		  queue.c \
+		  tasks.c \
+		  list.c
+
 # INCLUDES: list of includes, by default, use Includes directory
-INCLUDES = -IInclude
+INCLUDES = -IInclude -I3p/FreeRTOS/inc
 # BUILDDIR: directory to use for output
 BUILDDIR = build
 # TIVAWARE_PATH: path to tivaware folder
 TIVAWARE_PATH = /home/ben/Repos/tivaware
 # BINDIR: directory for binary output
 BINDIR = bin
+# Path for sources
+VPATH = src:3p/FreeRTOS
 
 # LD_SCRIPT: linker script
 LD_SCRIPT = $(MCU).ld
