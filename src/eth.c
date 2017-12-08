@@ -52,8 +52,8 @@
 const static uint8_t eth_mac_addr[6] = {0x00, 0x1a, 0xb6, 0x03, 0x3a, 0x04};
 
 /* Need at least 3 descriptors for each */
-#define ETH_NUM_TX_DESCRIPTORS 8
-#define ETH_NUM_RX_DESCRIPTORS 8
+#define ETH_NUM_TX_DESCRIPTORS 3
+#define ETH_NUM_RX_DESCRIPTORS 3
 tEMACDMADescriptor eth_rx_descriptor[ETH_NUM_RX_DESCRIPTORS];
 tEMACDMADescriptor eth_tx_descriptor[ETH_NUM_TX_DESCRIPTORS];
 
@@ -101,8 +101,7 @@ int32_t eth_rx_size() {
     return 0;
 }
 
-int32_t eth_rx(uint8_t *buf) { 
-    int_fast32_t len = 0;
+int32_t eth_rx(uint8_t *buf, int32_t len) { 
 
     /* Check if we have descriptor */
     if (!(eth_rx_descriptor[eth_rx_desc_index].ui32CtrlStatus & DES0_RX_CTRL_OWN)) {

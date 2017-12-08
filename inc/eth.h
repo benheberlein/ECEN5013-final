@@ -40,7 +40,7 @@ int32_t eth_rx_size(void);
 /**
  * @brief Process recieve interrupt
  */
-int32_t eth_rx(uint8_t *buf);
+int32_t eth_rx(uint8_t *buf, int32_t len);
 
 /**
  * @brief Ethernet interrupt

@@ -72,7 +72,7 @@ void vNetworkInterfaceProcess(void *v) {
         pxBufferDescriptor = pxGetNetworkBufferWithDescriptor( xBytesRecieved, 0 );
     
         if (pxBufferDescriptor != NULL) {
-            pxBufferDescriptor->xDataLength = eth_rx(pxBufferDescriptor->pucEthernetBuffer);
+            pxBufferDescriptor->xDataLength = eth_rx(pxBufferDescriptor->pucEthernetBuffer, xBytesRecieved);
 
             xRxEvent.pvData = (void *) pxBufferDescriptor;
 

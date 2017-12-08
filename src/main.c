@@ -1,6 +1,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "inc/hw_types.h"
 #include "inc/hw_gpio.h"
@@ -26,12 +27,14 @@ const static uint8_t ucMACAddr[6] = {0x00, 0x1a, 0xb6, 0x03, 0x3a, 0x04};
 
 /* IP Address if DHCP fails */
 static const uint8_t ucIPAddress[ 4 ] = { 192, 168, 0, 35 };
-static const uint8_t ucNetMask[ 4 ] = { 255, 255, 255, 0 };
+static const uint8_t ucNetMask[ 4 ] = { 255, 255, 255, 255 };
 static const uint8_t ucGatewayAddress[ 4 ] = { 192, 168, 0, 1 };
 
-static const uint8_t ucDNSServerAddress[ 4 ] = { 208, 67, 222, 222 };
+static const uint8_t ucDNSServerAddress[ 4 ] = { 192, 168, 0, 1};
 
 void demoTask(void *pvParamters) {
+
+    uint8_t init = 0;
 
     //
     // Loop forever.
@@ -41,27 +44,66 @@ void demoTask(void *pvParamters) {
         //
         // Turn on the LED.
         //
-        GPIOPinWrite(GPIO_PORTN_BASE, GPIO_PIN_0, GPIO_PIN_0);
+//        GPIOPinWrite(GPIO_PORTN_BASE, GPIO_PIN_0, GPIO_PIN_0);
 
         //
         // Delay for a bit.
         //
-        vTaskDelay(1000);
+        vTaskDelay(100);
 
         //
         // Turn off the LED.
         //
-        GPIOPinWrite(GPIO_PORTN_BASE, GPIO_PIN_0, 0x0);
-
+//        if (FreeRTOS_IsNetworkUp()) {
+//            GPIOPinWrite(GPIO_PORTN_BASE, GPIO_PIN_0, 0x0);
+//        }
         //
         // Delay for a bit.
         //
-        vTaskDelay(1000);
+        vTaskDelay(100);
+
+        if (init == 0) {
+            FreeRTOS_IPInit(ucIPAddress, ucNetMask, ucGatewayAddress, ucDNSServerAddress, ucMACAddr);
+            init = 1;
+        }
     }
 }
 
-int main()
-{
+void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent ) {
+    uint32_t ulIPAddress, ulNetMask, ulGatewayAddress, ulDNSServerAddress;
+    int8_t cBuffer[ 16 ];
+
+    if( eNetworkEvent == eNetworkUp )
+    {
+        /* The network is up and configured.  Print out the configuration
+        obtained from the DHCP server. */
+        FreeRTOS_GetAddressConfiguration( &ulIPAddress,
+                                          &ulNetMask,
+                                          &ulGatewayAddress,
+                                          &ulDNSServerAddress );
+
+        GPIOPinWrite(GPIO_PORTN_BASE, GPIO_PIN_0, GPIO_PIN_0);
+
+
+        /* Convert the IP address to a string then print it out. */
+        //FreeRTOS_inet_ntoa( ulIPAddress, cBuffer );
+        //printf( "IP Address: %s\r\n", cBuffer );
+
+        /* Convert the net mask to a string then print it out. */
+        //FreeRTOS_inet_ntoa( ulNetMask, cBuffer );
+        //printf( "Subnet Mask: %s\r\n", cBuffer );
+
+        /* Convert the IP address of the gateway to a string then print it out. */
+        //FreeRTOS_inet_ntoa( ulGatewayAddress, cBuffer );
+        //printf( "Gateway IP Address: %s\r\n", cBuffer );
+
+        /* Convert the IP address of the DNS server to a string then print it out. */
+        //FreeRTOS_inet_ntoa( ulDNSServerAddress, cBuffer );
+        //printf( "DNS server IP Address: %s\r\n", cBuffer );
+    }
+}
+
+int main() {
     
     uint32_t clock_rate;
     clock_rate = SysCtlClockFreqSet(
@@ -88,12 +130,11 @@ int main()
     // enable the GPIO pin for digital function.
     //
     GPIOPinTypeGPIOOutput(GPIO_PORTN_BASE, GPIO_PIN_0);
+    GPIOPinWrite(GPIO_PORTN_BASE, GPIO_PIN_0, 0x0);
 
 //    eth_init();
 
     xTaskCreate(demoTask, (const portCHAR*)"LED", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
-
-    FreeRTOS_IPInit(ucIPAddress, ucNetMask, ucGatewayAddress, ucDNSServerAddress, ucMACAddr);
 
     vTaskStartScheduler();
 
