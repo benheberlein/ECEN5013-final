@@ -48,7 +48,7 @@ TaskHandle_t xNetworkInterfaceProcessHandle = NULL;
 /* Forward declaration */
 void xNetworkInterfaceProcess(void *v);
 
-/* Ethernet controller function definitions */
+/* Ethernet controller function definition */
 void eth_process(void) {
     
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
@@ -63,30 +63,30 @@ void vNetworkInterfaceProcess(void *v) {
 
     while(1) {
 
-    ulTaskNotifyTake(pdFALSE, portMAX_DELAY);
+        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
-    xBytesRecieved = eth_rx_size();
+        xBytesRecieved = eth_rx_size();
 
-    if (xBytesRecieved > 0) {
+        if (xBytesRecieved > 0) {
     
-        pxBufferDescriptor = pxGetNetworkBufferWithDescriptor( xBytesRecieved, 0 );
+            pxBufferDescriptor = pxGetNetworkBufferWithDescriptor( xBytesRecieved, 0 );
     
-        if (pxBufferDescriptor != NULL) {
-            pxBufferDescriptor->xDataLength = eth_rx(pxBufferDescriptor->pucEthernetBuffer, xBytesRecieved);
+            if (pxBufferDescriptor != NULL) {
+                pxBufferDescriptor->xDataLength = eth_rx(pxBufferDescriptor->pucEthernetBuffer, xBytesRecieved);
 
-            xRxEvent.pvData = (void *) pxBufferDescriptor;
+                xRxEvent.eEventType = eNetworkRxEvent;
+                xRxEvent.pvData = (void *) pxBufferDescriptor;
 
-            if (xSendEventStructToIPTask(&xRxEvent, 0) == pdFALSE) {
-                vReleaseNetworkBufferAndDescriptor( pxBufferDescriptor );
-                iptraceETHERNET_RX_EVENT_LOST();
+                if (xSendEventStructToIPTask(&xRxEvent, 0) == pdFALSE) {
+                    vReleaseNetworkBufferAndDescriptor( pxBufferDescriptor );
+                    iptraceETHERNET_RX_EVENT_LOST();
+                } else {
+                    iptraceNETWORK_INTERFACE_RECEIVE();
+                }
             } else {
-                iptraceNETWORK_INTERFACE_RECEIVE();
+                iptraceETHERNET_RX_EVENT_LOST();
             }
-        } else {
-            iptraceETHERNET_RX_EVENT_LOST();
-
         }
-    }
 
     }
 

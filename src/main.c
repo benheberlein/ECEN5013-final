@@ -69,6 +69,25 @@ void demoTask(void *pvParamters) {
     }
 }
 
+void vApplicationPingReplyHook( ePingReplyStatus_t eStatus, uint16_t usIdentifier ) {
+    switch( eStatus ) {
+        case eSuccess    :
+            /* A valid ping reply has been received.  Post the sequence number
+            on the queue that is read by the vSendPing() function below.  Do
+            not wait more than 10ms trying to send the message if it cannot be
+            sent immediately because this function is called from the TCP/IP
+            RTOS task - blocking in this function will block the TCP/IP RTOS task. */
+            break;
+
+        case eInvalidChecksum :
+        case eInvalidData :
+            /* A reply was received but it was not valid. */
+            break;
+    }
+
+    return;
+}
+
 void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent ) {
     uint32_t ulIPAddress, ulNetMask, ulGatewayAddress, ulDNSServerAddress;
     int8_t cBuffer[ 16 ];
@@ -84,6 +103,15 @@ void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent ) {
 
         GPIOPinWrite(GPIO_PORTN_BASE, GPIO_PIN_0, GPIO_PIN_0);
 
+        ulIPAddress = FreeRTOS_inet_addr("192.168.0.13");
+
+        uint16_t usRequestSequenceNumber, usReplySequenceNumber;
+
+        usRequestSequenceNumber = FreeRTOS_SendPingRequest( ulIPAddress, 8, 100 / portTICK_PERIOD_MS );
+
+        if (usRequestSequenceNumber == pdFAIL) {
+            ulIPAddress = 111;
+        }
 
         /* Convert the IP address to a string then print it out. */
         //FreeRTOS_inet_ntoa( ulIPAddress, cBuffer );
