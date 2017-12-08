@@ -12,9 +12,12 @@
 #include "driverlib/can.h"
 
 #include "FreeRTOSConfig.h"
+#include "FreeRTOSIPConfig.h"
 #include "FreeRTOS.h"
 #include "task.h"
 #include "queue.h"
+
+#include "eth.h"
 
 void demoTask(void *pvParamters) {
 
@@ -73,6 +76,8 @@ int main()
     // enable the GPIO pin for digital function.
     //
     GPIOPinTypeGPIOOutput(GPIO_PORTN_BASE, GPIO_PIN_0);
+
+    eth_init();
 
     xTaskCreate(demoTask, (const portCHAR*)"LED", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
 

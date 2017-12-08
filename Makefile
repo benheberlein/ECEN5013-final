@@ -15,26 +15,54 @@
 # user configuration:
 #######################################
 # Path for sources
-VPATH = src:3p/FreeRTOS/Source:3p/FreeRTOS/Source/portable/GCC/ARM_CM4F:3p/FreeRTOS/Source/portable/MemMang/
+VPATH=src
+VPATH+=3p/FreeRTOS/Source
+VPATH+=3p/FreeRTOS/Source/portable/GCC/ARM_CM4F
+VPATH+=3p/FreeRTOS/Source/portable/MemMang/
+VPATH+=3p/FreeRTOS-Plus/Source/FreeRTOS-Plus-TCP/portable/BufferManagement
+VPATH+=3p/FreeRTOS-Plus/Source/FreeRTOS-Plus-TCP
+
 # TARGET: name of the output file
 TARGET = tiva
 # MCU: part number to build for
 MCU = TM4C1294XL
 # SOURCES: list of input source sources
 SOURCES = main.c \
-		  startup_gcc.c \
-		  tasks.c \
-    	  queue.c \
-		  tasks.c \
-		  list.c \
-          heap_2.c \
-          timers.c \
-          croutine.c \
-          event_groups.c \
-          port.c
+		  startup_gcc.c
+
+FREE_RTOS_SRCS = tasks.c \
+              queue.c \
+              tasks.c \
+              list.c \
+              heap_4.c \
+              timers.c \
+              croutine.c \
+              event_groups.c \
+              port.c
+
+FREE_RTOS_TCP_SRCS = FreeRTOS_IP.c \
+                    FreeRTOS_ARP.c \
+                    FreeRTOS_DHCP.c \
+                    FreeRTOS_DNS.c \
+                    FreeRTOS_Sockets.c \
+                    FreeRTOS_TCP_IP.c \
+                    FreeRTOS_UDP_IP.c \
+                    FreeRTOS_TCP_WIN.c \
+                    FreeRTOS_Stream_Buffer.c \
+                    NetworkInterface.c \
+                    BufferAllocation_2.c \
+                    eth.c
+
+SOURCES += $(FREE_RTOS_SRCS) $(FREE_RTOS_TCP_SRCS)
 
 # INCLUDES: list of includes, by default, use Includes directory
-INCLUDES = -Iinc -I3p/FreeRTOS/Source/include -I/home/ben/Repos/tivaware -I3p/FreeRTOS/Source/portable/GCC/ARM_CM4F
+INCLUDES = -Iinc \
+        -I3p/FreeRTOS/Source/include \
+        -I/home/ben/Repos/tivaware \
+        -I3p/FreeRTOS/Source/portable/GCC/ARM_CM4F \
+        -I3p/FreeRTOS-Plus/Source/FreeRTOS-Plus-TCP/include \
+        -I3p/FreeRTOS-Plus/Source/FreeRTOS-Plus-TCP/portable/Compiler/GCC
+        
 # BUILDDIR: directory to use for output
 BUILDDIR = build
 # TIVAWARE_PATH: path to tivaware folder
@@ -49,7 +77,7 @@ LD_SCRIPT = $(MCU).ld
 CFLAGS = -g -mthumb -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard
 CFLAGS +=-Os -ffunction-sections -fdata-sections -MD -std=c99 -Wall
 CFLAGS += -pedantic -DPART_$(MCU) -c $(INCLUDES) 
-CFLAGS += -DTARGET_IS_TM4C129_RA1 -D__TI_VFP_SUPPORT__
+CFLAGS += -DTARGET_IS_TM4C129_RA1 -D__TI_VFP_SUPPORT__ -DPART_TM4C1294NCPDT
 LDFLAGS = -T $(LD_SCRIPT) -Wl,-eResetISR -Wl,--gc-sections -g -mthumb -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -ffunction-sections -fdata-sections -MD -std=c99 -Wall
 
 
