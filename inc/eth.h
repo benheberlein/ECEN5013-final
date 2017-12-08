@@ -24,10 +24,23 @@
 #ifndef __ETH_H__
 #define __ETH_H__
 
+/** 
+ * @brief Function to call from rx interrupt to process
+ *
+ * Should be implemented elsewhere depending on OS and
+ * schedule call to eth_rx
+ */
+void eth_process(void);
+
+/**
+ * @brief Process recieve interrupt length
+ */
+int32_t eth_rx_size(void);
+
 /**
  * @brief Process recieve interrupt
  */
-int32_t eth_process(void);
+int32_t eth_rx(uint8_t *buf);
 
 /**
  * @brief Ethernet interrupt
@@ -35,8 +48,6 @@ int32_t eth_process(void);
  * Needs to be connected to vector table
  */
 void eth_int(void);
-
-//int32_t eth_rx(void);
 
 /**
  * @brief Ethernet send

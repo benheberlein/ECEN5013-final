@@ -27,6 +27,7 @@
 #include "stdlib.h"
 #include "stdint.h"
 #include "stdbool.h"
+#include "string.h"
 
 /* Tivaware includes */
 #include "inc/hw_emac.h"
@@ -59,21 +60,48 @@ tEMACDMADescriptor eth_tx_descriptor[ETH_NUM_TX_DESCRIPTORS];
 uint32_t eth_rx_desc_index = 0;
 uint32_t eth_tx_desc_index = ETH_NUM_TX_DESCRIPTORS - 1;
 
-#define ETH_RX_BUF_SIZE 1536
-#define ETH_TX_BUF_SIZE 1536
+#define ETH_RX_BUF_SIZE 1526
+#define ETH_TX_BUF_SIZE 1526
 uint8_t eth_rx_buf[ETH_RX_BUF_SIZE];
 uint8_t eth_tx_buf[ETH_TX_BUF_SIZE];
 
-void eth_int(void) {
+void eth_isr(void) {
     /* Read and clear */
     uint32_t temp;
     temp = EMACIntStatus(EMAC0_BASE, true);
     EMACIntClear(EMAC0_BASE, temp);
 
-    /* TODO set rx process flag */
+    /* Process interrupt or defer processing. Should be implemented somewhere 
+       else to connect with OS. */
+    eth_process();    
 }
 
-int32_t eth_rx(void) { 
+int32_t eth_rx_size() {
+    int_fast32_t len = 0;
+
+    /* Check if we have descriptor */
+    if (!(eth_rx_descriptor[eth_rx_desc_index].ui32CtrlStatus & DES0_RX_CTRL_OWN)) {
+
+        /* Check if frame is valid */
+        if (!(eth_rx_descriptor[eth_rx_desc_index].ui32CtrlStatus & DES0_RX_STAT_ERR)) {
+
+            /* Check if the last descriptor flag */
+            if (eth_rx_descriptor[eth_rx_desc_index].ui32CtrlStatus & DES0_RX_STAT_LAST_DESC) {
+
+                /* Get size */
+                len = ((eth_rx_descriptor[eth_rx_desc_index].ui32CtrlStatus &
+                                DES0_RX_STAT_FRAME_LENGTH_M) >>
+                                DES0_RX_STAT_FRAME_LENGTH_S);
+
+                return len;
+            }
+        }
+    }
+    
+    return 0;
+}
+
+int32_t eth_rx(uint8_t *buf) { 
     int_fast32_t len = 0;
 
     /* Check if we have descriptor */
@@ -91,8 +119,7 @@ int32_t eth_rx(void) {
                                 DES0_RX_STAT_FRAME_LENGTH_S);
 
                 /* TODO Process the frame */
-                
-
+                memcpy(buf, eth_rx_descriptor[eth_rx_desc_index].pvBuffer1, len);
             }
         }
 

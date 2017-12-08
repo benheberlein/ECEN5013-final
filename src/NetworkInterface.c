@@ -30,6 +30,7 @@
 #include "task.h"
 #include "queue.h"
 #include "semphr.h"
+#include "timers.h"
 
 /* FreeRTOS+TCP includes */
 #include "FreeRTOS_IP.h"
@@ -39,14 +40,77 @@
 #include "NetworkBufferManagement.h"
 #include "NetworkInterface.h"
 
+/* Ethernet controller */
+#include "eth.h"
+
+TaskHandle_t xNetworkInterfaceProcessHandle = NULL;
+
+/* Forward declaration */
+void xNetworkInterfaceProcess(void *v);
+
+/* Ethernet controller function definitions */
+void eth_process(void) {
+    
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    vTaskNotifyGiveFromISR(xNetworkInterfaceProcessHandle, &xHigherPriorityTaskWoken);
+    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+}
+
+void vNetworkInterfaceProcess(void *v) {
+    NetworkBufferDescriptor_t *pxBufferDescriptor;
+    size_t xBytesRecieved;
+    IPStackEvent_t xRxEvent;
+
+    while(1) {
+
+    ulTaskNotifyTake(pdFALSE, portMAX_DELAY);
+
+    xBytesRecieved = eth_rx_size();
+
+    if (xBytesRecieved > 0) {
+    
+        pxBufferDescriptor = pxGetNetworkBufferWithDescriptor( xBytesRecieved, 0 );
+    
+        if (pxBufferDescriptor != NULL) {
+            pxBufferDescriptor->xDataLength = eth_rx(pxBufferDescriptor->pucEthernetBuffer);
+
+            xRxEvent.pvData = (void *) pxBufferDescriptor;
+
+            if (xSendEventStructToIPTask(&xRxEvent, 0) == pdFALSE) {
+                vReleaseNetworkBufferAndDescriptor( pxBufferDescriptor );
+                iptraceETHERNET_RX_EVENT_LOST();
+            } else {
+                iptraceNETWORK_INTERFACE_RECEIVE();
+            }
+        } else {
+            iptraceETHERNET_RX_EVENT_LOST();
+
+        }
+    }
+
+    }
+
+}
+
 BaseType_t xNetworkInterfaceInitialise(void) {
-    BaseType_t b;
-    return b;
+    eth_init();
+    xTaskCreate( vNetworkInterfaceProcess, "EMAC", configMINIMAL_STACK_SIZE*10, NULL, configMAX_PRIORITIES - 1, &xNetworkInterfaceProcessHandle );
+    
+    return pdPASS;
 }
 
 BaseType_t xNetworkInterfaceOutput(NetworkBufferDescriptor_t *const pxDescriptor, BaseType_t xReleaseAfterSend) {
-    
-    BaseType_t b;
-    return b;
 
+    /* Transmit with ethernet driver */
+    eth_tx(pxDescriptor->pucEthernetBuffer, pxDescriptor->xDataLength);
+
+    /* Call trace function */
+    iptraceNETWORK_INTERFACE_TRANSMIT();
+    
+    /* Release FreeRTOS ethernet buffer */
+    if (xReleaseAfterSend != pdFALSE) {
+        vReleaseNetworkBufferAndDescriptor( pxDescriptor );
+    }
+
+    return pdTRUE;
 }

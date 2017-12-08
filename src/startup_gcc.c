@@ -42,7 +42,7 @@ extern void vPortSVCHandler(void);
 extern void xPortSysTickHandler(void);
 
 // Ethernet handler
-extern void eth_int(void);
+extern void eth_isr(void);
 
 //*****************************************************************************
 //
@@ -124,7 +124,7 @@ void (* const g_pfnVectors[])(void) =
     IntDefaultHandler,                      // I2C1 Master and Slave
     IntDefaultHandler,                      // CAN0
     IntDefaultHandler,                      // CAN1
-    eth_int,                      // Ethernet
+    eth_isr,                      // Ethernet
     IntDefaultHandler,                      // Hibernate
     IntDefaultHandler,                      // USB0
     IntDefaultHandler,                      // PWM Generator 3

@@ -1,5 +1,6 @@
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 #include "inc/hw_types.h"
 #include "inc/hw_gpio.h"
@@ -11,13 +12,24 @@
 #include "driverlib/pin_map.h"
 #include "driverlib/can.h"
 
-#include "FreeRTOSConfig.h"
-#include "FreeRTOSIPConfig.h"
 #include "FreeRTOS.h"
 #include "task.h"
 #include "queue.h"
+#include "list.h"
+#include "FreeRTOS_IP.h"
+#include "FreeRTOS_Sockets.h"
 
 #include "eth.h"
+
+/* MAC address */
+const static uint8_t ucMACAddr[6] = {0x00, 0x1a, 0xb6, 0x03, 0x3a, 0x04};
+
+/* IP Address if DHCP fails */
+static const uint8_t ucIPAddress[ 4 ] = { 192, 168, 0, 35 };
+static const uint8_t ucNetMask[ 4 ] = { 255, 255, 255, 0 };
+static const uint8_t ucGatewayAddress[ 4 ] = { 192, 168, 0, 1 };
+
+static const uint8_t ucDNSServerAddress[ 4 ] = { 208, 67, 222, 222 };
 
 void demoTask(void *pvParamters) {
 
@@ -77,12 +89,16 @@ int main()
     //
     GPIOPinTypeGPIOOutput(GPIO_PORTN_BASE, GPIO_PIN_0);
 
-    eth_init();
+//    eth_init();
 
     xTaskCreate(demoTask, (const portCHAR*)"LED", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
 
+    FreeRTOS_IPInit(ucIPAddress, ucNetMask, ucGatewayAddress, ucDNSServerAddress, ucMACAddr);
+
     vTaskStartScheduler();
 
+    while(1) {}
+    
     return 0;
 
 }

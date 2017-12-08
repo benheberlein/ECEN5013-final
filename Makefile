@@ -32,7 +32,6 @@ SOURCES = main.c \
 
 FREE_RTOS_SRCS = tasks.c \
               queue.c \
-              tasks.c \
               list.c \
               heap_4.c \
               timers.c \

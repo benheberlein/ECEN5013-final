@@ -128,7 +128,6 @@ to exclude the API function. */
 #define INCLUDE_vTaskDelayUntil         1
 #define INCLUDE_vTaskDelay              1
 
-
 /* The highest interrupt priority that can be used by any interrupt service
 routine that makes calls to interrupt safe FreeRTOS API functions.  DO NOT CALL
 INTERRUPT SAFE FREERTOS API FUNCTIONS FROM ANY INTERRUPT THAT HAS A HIGHER
