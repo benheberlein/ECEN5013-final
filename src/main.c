@@ -27,10 +27,60 @@ const static uint8_t ucMACAddr[6] = {0x00, 0x1a, 0xb6, 0x03, 0x3a, 0x04};
 
 /* IP Address if DHCP fails */
 static const uint8_t ucIPAddress[ 4 ] = { 192, 168, 0, 35 };
-static const uint8_t ucNetMask[ 4 ] = { 255, 255, 255, 255 };
+static const uint8_t ucNetMask[ 4 ] = { 255, 255, 255, 0 };
 static const uint8_t ucGatewayAddress[ 4 ] = { 192, 168, 0, 1 };
 
 static const uint8_t ucDNSServerAddress[ 4 ] = { 192, 168, 0, 1};
+
+uint8_t init_s = 0;
+
+static const TickType_t xTaskDelay = 250 / portTICK_RATE_MS;
+static const TickType_t xSendTimeOut = 1000 / portTICK_RATE_MS;
+static const TickType_t xReceiveTimeOut = 1000 / portTICK_RATE_MS;
+
+Socket_t prvOpenTCPClientSocket() {
+    struct freertos_sockaddr xBindAddress;
+    Socket_t xClientSocket;
+    socklen_t xSize = sizeof(xBindAddress);
+    static const TickType_t xTimeOut = pdMS_TO_TICKS(5000);
+    BaseType_t xBytesSent = 0;
+    xClientSocket = FreeRTOS_socket(FREERTOS_AF_INET,
+                                    FREERTOS_SOCK_STREAM,
+                                    FREERTOS_IPPROTO_TCP);
+    configASSERT(xClientSocket != FREERTOS_INVALID_SOCKET);
+
+/*    xBindAddress.sin_port = (uint16_t) usPort;
+    xBindAddress.sin_port = FreeRTOS_htons(xBindAddress.sin_port);
+    xBindAddress.sin_addr = 0;
+ */
+    FreeRTOS_bind(xClientSocket, NULL, sizeof(struct freertos_sockaddr));
+
+    FreeRTOS_setsockopt(xClientSocket,
+                        0,
+                        FREERTOS_SO_RCVTIMEO,
+                        &xTimeOut,
+                        sizeof(xTimeOut));
+
+    FreeRTOS_setsockopt(xClientSocket,
+                        0,
+                        FREERTOS_SO_SNDTIMEO,
+                        &xTimeOut,
+                        sizeof(xTimeOut));
+    struct freertos_sockaddr xServer;
+    xServer.sin_addr = FreeRTOS_inet_addr_quick(192, 168, 0, 13);
+    xServer.sin_port = FreeRTOS_htons(4000);
+
+    int ret = FreeRTOS_connect(xClientSocket, &xServer, sizeof(struct freertos_sockaddr));
+
+    if (ret == 0) {
+        char str[32] = "Hello world!\n";
+        xBytesSent = FreeRTOS_send(xClientSocket, str, 32, 0);
+    }
+
+    
+
+    return xClientSocket;
+}
 
 void demoTask(void *pvParamters) {
 
@@ -65,6 +115,13 @@ void demoTask(void *pvParamters) {
         if (init == 0) {
             FreeRTOS_IPInit(ucIPAddress, ucNetMask, ucGatewayAddress, ucDNSServerAddress, ucMACAddr);
             init = 1;
+        }
+
+        if (init_s == 1) {
+            init_s = 2;
+
+            char data[32] = "123abc567";
+            prvOpenTCPClientSocket();
         }
     }
 }
@@ -111,6 +168,10 @@ void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent ) {
 
         if (usRequestSequenceNumber == pdFAIL) {
             ulIPAddress = 111;
+        }
+
+        if (init_s == 0) {
+            init_s = 1;
         }
 
         /* Convert the IP address to a string then print it out. */
