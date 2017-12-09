@@ -27,8 +27,10 @@ TARGET = tiva
 # MCU: part number to build for
 MCU = TM4C1294XL
 # SOURCES: list of input source sources
-SOURCES = main.c \
-		  startup_gcc.c
+SOURCES = tiva.c \
+		  startup_gcc.c \
+          temp.c \
+          gas.c
 
 FREE_RTOS_SRCS = tasks.c \
               queue.c \

@@ -9,7 +9,7 @@
 *
 *******************************************************************************/
 /**
- * @file temp.c
+ * @file temp.h
  * @brief Temperature sensor task
  * 
  * This task is responsible for managin interactions with the TMP102 sensor.
@@ -20,22 +20,67 @@
  *
  */
 
-uint8_t temp_init(msg_t *rx) {
+#ifndef __TEMP_H__
+#define __TEMP_H__
 
-}
+#include "msg.h"
 
-uint8_t temp_shutdown(msg_t *rx) {
+/**
+ * @brief Error codes 
+ */
+#define TEMP_SUCCESS      0
+#define TEMP_ERR_STUB     126
+#define TEMP_ERR_UNKNOWN  127
 
-}
+/**
+ * @brief Task API Definitions
+ * ---------------------------
+ */
 
-uint8_t temp_wakeup(msg_t *rx) {
+/**
+ * @brief Temp init task
+ *
+ * DATA none
+ */
+uint8_t temp_init(msg_t *rx);
 
-}
+/**
+ * @brief Shutdown temp sensor
+ *
+ * DATA none
+ */
+uint8_t temp_shutdown(msg_t *rx);
 
-uint8_t temp_period(msg_t *rx) {
+/**
+ * @brief Wake up temp sensor
+ *
+ * DATA none
+ */
+uint8_t temp_wakeup(msg_t *rx);
 
-}
 
-uint8_t temp_kil(msg_t *rx) {
+/**
+ * @brief Set the period for temperature check
+ *
+ * DATA 4 bytes of period in milliseconds
+ */
+uint8_t temp_period(msg_t *rx);
 
-}
+/**
+ * @brief Kill temp task gracefully
+ *
+ * DATA none
+ */
+uint8_t temp_kil(msg_t *rx);
+
+/**
+ * @brief Private functions
+ * ------------------------
+ */
+
+/**
+ * @brief Temp task
+ */
+void temp_task(void *p);
+
+#endif /*__TEMP_H__*/

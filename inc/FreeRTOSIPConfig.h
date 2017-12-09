@@ -3,12 +3,6 @@
 
 #include <stdlib.h>
 
-
-
-/* Define the byte order of the target MCU (the MCU FreeRTOS+TCP is executing
-on).  Valid options are FREERTOS_BIG_ENDIAN and FREERTOS_LITTLE_ENDIAN. */
-#define ipconfigBYTE_ORDER FREERTOS_LITTLE_ENDIAN
-
 /* If the network card/driver includes checksum offloading (IP/TCP/UDP checksums)
 then set ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM to 1 to prevent the software
 stack repeating the checksum calculations. */
@@ -87,15 +81,6 @@ milliseconds can be converted to a time in ticks by dividing the time in
 milliseconds by portTICK_PERIOD_MS. */
 #define ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS ( 5000 / portTICK_PERIOD_MS )
 
-/* If ipconfigUSE_DHCP is 1 then FreeRTOS+TCP will attempt to retrieve an IP
-address, netmask, DNS server address and gateway address from a DHCP server.  If
-ipconfigUSE_DHCP is 0 then FreeRTOS+TCP will use a static IP address.  The
-stack will revert to using the static IP address even when ipconfigUSE_DHCP is
-set to 1 if a valid configuration cannot be obtained from a DHCP server for any
-reason.  The static configuration used is that passed into the stack by the
-FreeRTOS_IPInit() function call. */
-#define ipconfigUSE_DHCP    1
-
 /* With this option, the hostname can be registered as well which makes
 it easier to lookup a device in a router's list of DHCP clients. */
 #define ipconfigDHCP_REGISTER_HOSTNAME 1
@@ -119,11 +104,6 @@ cache then the UDP message is replaced by a ARP message that solicits the
 required MAC address information.  ipconfigARP_CACHE_ENTRIES defines the maximum
 number of entries that can exist in the ARP table at any one time. */
 #define ipconfigARP_CACHE_ENTRIES       6
-
-/* ARP requests that do not result in an ARP response will be re-transmitted a
-maximum of ipconfigMAX_ARP_RETRANSMISSIONS times before the ARP request is
-aborted. */
-#define ipconfigMAX_ARP_RETRANSMISSIONS ( 5 )
 
 /* ipconfigMAX_ARP_AGE defines the maximum time between an entry in the ARP
 table being created or refreshed and the entry being removed because it is stale.
@@ -150,12 +130,6 @@ to ensure the total amount of RAM that can be consumed by the IP stack is capped
 to a pre-determinable value. */
 #define ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS      60
 
-/* A FreeRTOS queue is used to send events from application tasks to the IP
-stack.  ipconfigEVENT_QUEUE_LENGTH sets the maximum number of events that can
-be queued for processing at any one time.  The event queue must be a minimum of
-5 greater than the total number of network buffers. */
-#define ipconfigEVENT_QUEUE_LENGTH      ( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS + 5 )
-
 /* The address of a socket is the combination of its IP address and its port
 number.  FreeRTOS_bind() is used to manually allocate a port number to a socket
 (to 'bind' the socket to a port), but manual binding is not normally necessary
@@ -173,19 +147,6 @@ aborted. */
 /* Defines the Time To Live (TTL) values used in outgoing UDP packets. */
 #define ipconfigUDP_TIME_TO_LIVE        128
 #define ipconfigTCP_TIME_TO_LIVE        128 /* also defined in FreeRTOSIPConfigDefaults.h */
-
-/* USE_TCP: Use TCP and all its features */
-#define ipconfigUSE_TCP             ( 1 )
-
-/* USE_WIN: Let TCP use windowing mechanism. */
-#define ipconfigUSE_TCP_WIN         ( 0 )
-
-/* The MTU is the maximum number of bytes the payload of a network frame can
-contain.  For normal Ethernet V2 frames the maximum MTU is 1500.  Setting a
-lower value can save RAM, depending on the buffer management scheme used.  If
-ipconfigCAN_FRAGMENT_OUTGOING_PACKETS is 1 then (ipconfigNETWORK_MTU - 28) must
-be divisible by 8. */
-#define ipconfigNETWORK_MTU     1200
 
 /* Set ipconfigUSE_DNS to 1 to include a basic DNS client/resolver.  DNS is used
 through the FreeRTOS_gethostbyname() API function. */

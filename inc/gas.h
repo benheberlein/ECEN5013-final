@@ -23,6 +23,10 @@
 #ifndef __GAS_H__
 #define __GAS_H__
 
+#include "stdint.h"
+#include "gas.h"
+#include "msg.h"
+
 /**
  * @brief Error codes 
  */
@@ -74,5 +78,10 @@ uint8_t gas_kill(msg_t *rx);
  * @brief Private functions
  * ------------------------
  */
+
+/**
+ * @brief Gas task
+ */
+void gas_task(void *p);
 
 #endif /*__GAS_H__*/

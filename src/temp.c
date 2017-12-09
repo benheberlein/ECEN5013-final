@@ -20,22 +20,47 @@
  *
  */
 
+#include "FreeRTOS.h"
+#include "task.h"
+#include "queue.h"
+#include "list.h"
+#include "FreeRTOS_IP.h"
+#include "FreeRTOS_Sockets.h"
+
+#include "stdint.h"
+#include "msg.h"
+#include "temp.h"
+
+void temp_task(void *p) {
+
+    while(1) {
+        vTaskDelay(1000);
+
+    }
+}
+
 uint8_t temp_init(msg_t *rx) {
+
+    return TEMP_ERR_STUB;
 
 }
 
 uint8_t temp_shutdown(msg_t *rx) {
 
+    return TEMP_ERR_STUB;
 }
 
 uint8_t temp_wakeup(msg_t *rx) {
 
+    return TEMP_ERR_STUB;
 }
 
 uint8_t temp_period(msg_t *rx) {
 
+    return TEMP_ERR_STUB;
 }
 
 uint8_t temp_kil(msg_t *rx) {
 
+    return TEMP_ERR_STUB;
 }
