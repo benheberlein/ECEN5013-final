@@ -31,6 +31,13 @@
 #include <time.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 
 /**
  * Private variables
@@ -38,6 +45,34 @@
 static const char *MAIN_USAGE = "One optional argument for log file name.\n";
 static char *log_name;
 static pthread_t main_tasks[DEFS_NUM_TASKS_BBG];
+static struct sockaddr_in server_address;
+static int socket_conn = 0;
+static char socket_buf[MSG_SIZE];
+static pthread_t socket_task;
+
+void *bbg_socket_helper(void *p) {
+    /* Get socket and initialize */
+    int fd = socket(AF_INET, SOCK_STREAM, 0);
+    memset(&server_address, '0', sizeof(server_address));
+    memset(socket_buf, '0', sizeof(socket_buf));
+
+    /* Set up connection */
+    server_address.sin_family = AF_INET;
+    server_address.sin_addr.s_addr = htonl(INADDR_ANY);
+    server_address.sin_port = htons(4000);
+
+    /* Listen for connection */
+    bind(fd, (struct sockaddr *)&server_address, sizeof(server_address));
+    listen(fd, 10);
+
+    /* Get connection */
+    socket_conn = accept(fd, (struct sockaddr *) NULL, NULL);
+
+    while(1) {
+        read(socket_conn, socket_buf, MSG_SIZE);
+        printf((char*)socket_buf);
+    }
+} 
 
 uint8_t bbg_heartbeat(msg_t *rx) {
 
@@ -65,6 +100,9 @@ int main(int argc, char **argv) {
     }
     if (pthread_create(&main_tasks[DEFS_TASK_LOG], NULL, log_task, NULL)) {
        return BBG_ERR_INIT;
+    }
+    if (pthread_create(&socket_task, NULL, bbg_socket_helper, NULL)) {
+        return BBG_ERR_INIT;
     }
 
     /* Start logger */

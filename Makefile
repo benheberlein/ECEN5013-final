@@ -36,7 +36,7 @@ endif
 ifeq ($(MAKECMDGOALS),bbg)
 TARGET=bbg
 endif
-ifeq ($(MAKECMDGOALS),bbg-debug)
+ifeq ($(MAKECMDGOALS),debug-bbg)
 TARGET=bbg
 endif
 ifeq ($(MAKECMDGOALS),clean)
@@ -154,7 +154,6 @@ CC = gcc
 LD = gcc
 OBJCOPY = objcopy
 GDB = gdb
-
 endif
 
 #######################################
@@ -173,6 +172,9 @@ flash-tiva: tiva
 tiva: $(BUILDDIR)/$(TARGET).bin $(BINDIR)
 	$(MV) $(BUILDDIR)/$(TARGET).bin $(BINDIR)/$(TARGET).bin
 	$(MV) $(BUILDDIR)/$(TARGET).out $(BINDIR)/$(TARGET).out
+
+debug-bbg: bbg
+	$(GDB) $(BINDIR)/$(TARGET).out
 
 bbg: $(BUILDDIR)/$(TARGET).bin $(BINDIR)
 	$(MV) $(BUILDDIR)/$(TARGET).out $(BINDIR)/$(TARGET).out

@@ -124,7 +124,7 @@ void tiva_open_socket(void) {
                         sizeof(timeOut));
     
     struct freertos_sockaddr server;
-    server.sin_addr = FreeRTOS_inet_addr_quick(192, 168, 0, 13);
+    server.sin_addr = FreeRTOS_inet_addr_quick(192, 168, 0, 17);
     server.sin_port = FreeRTOS_htons(4000);
 
     int ret = -1;
