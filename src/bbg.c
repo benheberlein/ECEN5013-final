@@ -23,6 +23,7 @@
 #include "bbg.h"
 #include "msg.h"
 #include "log.h"
+#include "speak.h"
 #include <stdint.h>
 #include <string.h>
 #include <sys/time.h>
@@ -59,9 +60,9 @@ int main(int argc, char **argv) {
     msg_init();
         
     /* Open all threads */
-//    if (pthread_create(&main_tasks[DEFS_TASK_SPEAK], NULL, speak_task, NULL)) {
-//       return BBG_ERR_INIT;
-//    }
+    if (pthread_create(&main_tasks[DEFS_TASK_SPEAK], NULL, speak_task, NULL)) {
+       return BBG_ERR_INIT;
+    }
     if (pthread_create(&main_tasks[DEFS_TASK_LOG], NULL, log_task, NULL)) {
        return BBG_ERR_INIT;
     }
@@ -78,10 +79,23 @@ int main(int argc, char **argv) {
     tx.from = DEFS_TASK_BBG;
     tx.devt = DEFS_ID_BBG;
     tx.to   = DEFS_TASK_LOG;
-    tx.cmd = LOG_INIT;
+    tx.cmd  = LOG_INIT;
     tx.data[0] = 1;
     strcpy((char *) (tx.data+1), log_name);
     msg_send(&tx);
+
+    /* Initialize speak task */
+    tx.devt = DEFS_ID_BBG;
+    tx.to   = DEFS_TASK_SPEAK;
+    tx.cmd  = SPEAK_INIT;
+    tx.data[0] = 0;
+    msg_send(&tx);
+
+    /* Send speak message */
+    tx.cmd = SPEAK_SPEAK;
+    char hello[32] = "Hello world";
+    strcpy((char *) (tx.data), hello);
+    msg_send(&tx); 
 
     /* Initialize networking */
 

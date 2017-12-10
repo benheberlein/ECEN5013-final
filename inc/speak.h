@@ -65,4 +65,10 @@ uint8_t speak_kill(msg_t *rx);
  * ------------------------
  */
 
+/* Speak terminate handler */
+void speak_terminate(void *args);
+
+/* Speak task */
+void *speak_task(void *data);
+
 #endif /*__SPEAK_H__*/

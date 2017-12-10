@@ -46,7 +46,7 @@ void log_terminate(void *arg) {
         char *p = asctime(ti);
         p[strlen(p) - 1] = 0;
         fprintf(log_file, "%s\t", p);
-        fprintf(log_file, "%s\t", log_task_strings[DEFS_TASK_LOG]);
+        fprintf(log_file, "%s\t", log_task_strings_bbg[DEFS_TASK_LOG]);
         fprintf(log_file, "%s\t", log_level_strings[LOG_LEVEL_WARN]);
         fprintf(log_file, "'%s'\n", "Closing log thread gracefully");
         fflush(log_file);
@@ -124,7 +124,11 @@ uint8_t log_log(msg_t *rx) {
     char *p = asctime(ti);
     p[strlen(p) - 1] = 0;
     fprintf(log_file, "%s\t", p);
-    fprintf(log_file, "%s\t", log_task_strings[rx->from]);
+    if (rx->devf == DEFS_ID_BBG) {
+        fprintf(log_file, "%s\t", log_task_strings_bbg[rx->from]);
+    } else if (rx->devf == DEFS_ID_TIVA) {
+        fprintf(log_file, "%s\t", log_task_strings_tiva[rx->from]);
+    }
     fprintf(log_file, "%s\t", log_level_strings[rx->data[0]]);
     fprintf(log_file, "'%s'\n", &rx->data[1]);
     fflush(log_file); 

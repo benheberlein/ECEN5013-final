@@ -66,7 +66,8 @@
  * @brief Log string arrays
  */
 static char *log_level_strings[] = {"DEBUG", "INFO", "WARN", "ERROR"};
-static char *log_task_strings[] = {"MAIN", "LIGHT", "TEMP", "LOG"};
+static char *log_task_strings_bbg[] = {"BBG", "SPEAK", "LOG"};
+static char *log_task_strings_tiva[] = {"TIVA", "TEMP", "GAS"};
 
 /**
  * @brief Task API Definitions
