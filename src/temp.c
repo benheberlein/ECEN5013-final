@@ -33,9 +33,18 @@
 
 void temp_task(void *p) {
 
-    while(1) {
-        vTaskDelay(1000);
+    msg_t msg;
+    msg.devf = DEFS_ID_TIVA;
+    msg.from = DEFS_TASK_TEMP;
+    msg.devt = DEFS_ID_TIVA;
+    msg.to = DEFS_TASK_TIVA;
+    msg.cmd = 11;
+    msg.data[0] = 5;
 
+    while(1) {
+        vTaskDelay(100);
+
+        msg_send(&msg);
     }
 }
 

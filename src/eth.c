@@ -71,6 +71,8 @@ void eth_isr(void) {
     temp = EMACIntStatus(EMAC0_BASE, true);
     EMACIntClear(EMAC0_BASE, temp);
 
+    int32_t ret = IntPriorityGet(INT_EMAC0);
+
     /* Process interrupt or defer processing. Should be implemented somewhere 
        else to connect with OS. */
     eth_process();    
@@ -258,6 +260,10 @@ void eth_init() {
     /* Enable ethernet */
     EMACTxEnable(EMAC0_BASE);
     EMACRxEnable(EMAC0_BASE);
+
+    /* Set priority (important for FreeRTOS) */
+    IntPrioritySet(INT_EMAC0, (7<<5));
+    int32_t ret = IntPriorityGet(INT_EMAC0);
 
     /* Enable ethernet interrupt */
     IntEnable(INT_EMAC0);

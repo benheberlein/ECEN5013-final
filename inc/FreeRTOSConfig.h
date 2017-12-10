@@ -149,6 +149,8 @@ void vPostSleepProcessing( unsigned long xExpectedIdleTime );
 #define configPRE_SLEEP_PROCESSING( xExpectedIdleTime ) vPreSleepProcessing( xExpectedIdleTime );
 #define configPOST_SLEEP_PROCESSING( xExpectedIdleTime ) vPostSleepProcessing( xExpectedIdleTime );
 
+#define configASSERT( x ) if( ( x ) == 0UL ) { taskDISABLE_INTERRUPTS(); for( ;; ); }
+
 /* Definitions that map the FreeRTOS port interrupt handlers to their CMSIS
 standard names. */
 //#define vPortSVCHandler SVC_Handler

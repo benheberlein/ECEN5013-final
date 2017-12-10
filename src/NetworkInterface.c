@@ -54,6 +54,7 @@ void eth_process(void) {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
     vTaskNotifyGiveFromISR(xNetworkInterfaceProcessHandle, &xHigherPriorityTaskWoken);
     portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+
 }
 
 void vNetworkInterfaceProcess(void *v) {
@@ -93,9 +94,11 @@ void vNetworkInterfaceProcess(void *v) {
 }
 
 BaseType_t xNetworkInterfaceInitialise(void) {
+
+    xTaskCreate( vNetworkInterfaceProcess, "EMAC", configMINIMAL_STACK_SIZE*10, NULL, configMAX_PRIORITIES - 1, &xNetworkInterfaceProcessHandle ); 
+    vTaskDelay(200);
     eth_init();
-    xTaskCreate( vNetworkInterfaceProcess, "EMAC", configMINIMAL_STACK_SIZE*10, NULL, configMAX_PRIORITIES - 1, &xNetworkInterfaceProcessHandle );
-    
+
     return pdPASS;
 }
 

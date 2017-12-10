@@ -40,6 +40,7 @@
 #include "task.h"
 #include "queue.h"
 #include "list.h"
+#include "semphr.h"
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_Sockets.h"
 
@@ -47,6 +48,7 @@
 #include "temp.h"
 #include "gas.h"
 #include "msg.h"
+#include "defs.h"
 
 /* MAC address */
 static const uint8_t tiva_mac[6] = {TIVA_MAC0, 
@@ -65,6 +67,9 @@ static const uint8_t tiva_dns[4] = {TIVA_DNS0, TIVA_DNS1, TIVA_DNS2, TIVA_DNS3};
 /* Initialization flag (small state machine on network init) */
 static uint8_t tiva_init_flag = 0;
 
+/* Network init semaphore */
+SemaphoreHandle_t tiva_init_sem;
+
 /* Client socket */
 Socket_t tiva_socket;
 
@@ -80,14 +85,10 @@ void vApplicationIPNetworkEventHook(eIPCallbackEvent_t event) {
         /* Turn on LED */
         GPIOPinWrite(GPIO_PORTN_BASE, GPIO_PIN_0, GPIO_PIN_0);
 
-        if (tiva_init_flag == 0) {
-            tiva_init_flag = 1;
-        }
+        /* Send signal to init socket */
+        xSemaphoreGive(tiva_init_sem);
 
-    } else {
-        /* Turn off LED */
- //       tiva_init_flag = 0;
-    }
+    } 
 }
 
 void tiva_open_socket(void) {
@@ -138,14 +139,30 @@ void main_task(void *p) {
     GPIOPinTypeGPIOOutput(GPIO_PORTN_BASE, GPIO_PIN_0);
     GPIOPinWrite(GPIO_PORTN_BASE, GPIO_PIN_0, 0x0);
 
+    /* Initialize network connection semaphore */
+    tiva_init_sem = xSemaphoreCreateBinary();
+
     /* Initialize TCP stack */
     FreeRTOS_IPInit(tiva_ip, tiva_netmask, tiva_gateway, tiva_dns, tiva_mac);
 
+    /* Wait for network and open socket*/
+    xSemaphoreTake(tiva_init_sem, portMAX_DELAY);
+    //tiva_open_socket(); // TODO turn back on
+
+    msg_t rec_msg;
     while(1) {
-        if (tiva_init_flag == 1) {
-            tiva_init_flag = 2;
-            tiva_open_socket();
+        /* Recieve message or time out */
+        if (!xQueueReceive(msg_queues[DEFS_TASK_TIVA], &rec_msg, 1000)) {    
+            int a = 0;
+        /* Route message */
+        } else {
+            int b = 0;
         }
+        /* Init or reinit socket connection */
+    //    if (tiva_init_flag == 1) {
+    //        tiva_init_flag = 0;
+    //        tiva_open_socket();
+    //    }
     }
 }
 
@@ -157,10 +174,13 @@ int main() {
         SYSCTL_USE_PLL | SYSCTL_CFG_VCO_480),
         SYSTEM_CLOCK);
 
+    /* Initialize message queues */
+    msg_init();    
+
     /* Create tasks */
-//    xTaskCreate(temp_task, (const portCHAR*)"TEMP", configMINIMAL_STACK_SIZE, NULL, 2, NULL);
 //    xTaskCreate(gas_task, (const portCHAR*)"GAS", configMINIMAL_STACK_SIZE, NULL, 2, NULL);
     xTaskCreate(main_task, (const portCHAR*)"MAIN", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
+    xTaskCreate(temp_task, (const portCHAR*)"TEMP", configMINIMAL_STACK_SIZE, NULL, 2, NULL);
 
     /* Start Scheduler */
     vTaskStartScheduler();

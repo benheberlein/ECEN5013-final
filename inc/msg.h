@@ -26,11 +26,21 @@
 
 #include <stdint.h>
 
+#include "FreeRTOS.h"
+#include "task.h"
+#include "queue.h"
+#include "list.h"
+#include "semphr.h"
+#include "FreeRTOS_IP.h"
+#include "FreeRTOS_Sockets.h"
+
+#include "defs.h"
+
 /**
  * @brief Message attributes
  */
 #define MSG_SIZE        128
-#define MSG_DATASIZE    125
+#define MSG_DATASIZE    123
 #define MSG_MAXMSGS     8
 
 /**
@@ -38,6 +48,8 @@
  */
 #define MSG_SUCCESS     0
 #define MSG_ERR_INIT    1
+#define MSG_ERR_FAIL    2
+#define MSG_ERR_ROUTE   3
 #define MSG_ERR_STUB    126
 #define MSG_ERR_UNKNOWN 127
 
@@ -45,8 +57,10 @@
  * @brief Message structure for tasks
  */
 typedef struct __attribute((packed)) msg_s {
-    uint8_t dev;        /* Device ID */
-    uint8_t from;       /* First bit is RSP field */
+    uint8_t devf;       /* From device ID */
+    uint8_t from;       /* From task */
+    uint8_t devt;       /* To device ID */
+    uint8_t to;         /* To task */
     uint8_t cmd;        /* Command */ 
     uint8_t data[MSG_DATASIZE];   /* NULL terminated data */
 } msg_t;
@@ -54,6 +68,10 @@ typedef struct __attribute((packed)) msg_s {
 /**
  * @brief Queue descriptions
  */
+#define MSG_QUEUE_NUM 3
+QueueHandle_t msg_queues[MSG_QUEUE_NUM];
+
+
 #ifdef TARGET_BBG
 #define MSG_QUEUE_NUM 4
 #define MSG_QUEUE_PERM  0666

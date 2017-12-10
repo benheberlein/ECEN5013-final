@@ -30,7 +30,8 @@ MCU = TM4C1294XL
 SOURCES = tiva.c \
 		  startup_gcc.c \
           temp.c \
-          gas.c
+          gas.c \
+          msg.c
 
 FREE_RTOS_SRCS = tasks.c \
               queue.c \
