@@ -1,11 +1,12 @@
+#######################################
 # Makefile for final project
 # Targets are 
-#   tiva
-#   flash-tiva
-#   debug-tiva
-#   bbg
-#   debug-bbg
-#   clean 
+#   tiva        make for tiva
+#   flash-tiva  flash tiva (must be done on host computer)
+#   debug-tiva  open a gdb session (must be done on host)
+#   bbg         make for bbg (must be done on bbg)
+#   debug-bbg   open a gdb session (must be done on bbg)
+#   clean       clean
 #
 # Originally based on the uCtools project
 # found at uctools.github.com showing
@@ -23,15 +24,43 @@ VPATH+=3p/FreeRTOS-Plus/Source/FreeRTOS-Plus-TCP/portable/BufferManagement
 VPATH+=3p/FreeRTOS-Plus/Source/FreeRTOS-Plus-TCP
 
 # TARGET: name of the output file
-TARGET = tiva
+ifeq ($(MAKECMDGOALS),tiva)
+TARGET=tiva
+endif
+ifeq ($(MAKECMDGOALS),flash-tiva)
+TARGET=tiva
+endif
+ifeq ($(MAKECMDGOALS),debug-tiva)
+TARGET=tiva
+endif
+ifeq ($(MAKECMDGOALS),bbg)
+TARGET=bbg
+endif
+ifeq ($(MAKECMDGOALS),bbg-debug)
+TARGET=bbg
+endif
+ifeq ($(MAKECMDGOALS),clean)
+TARGET=bbg
+endif
+ifeq ($(TARGET),all)
+$(error Please supply target)
+endif
+ifeq ($(TARGET),)
+$(error Pease supply target)
+endif
+
 # MCU: part number to build for
 MCU = TM4C1294XL
 # SOURCES: list of input source sources
-SOURCES = tiva.c \
-		  startup_gcc.c \
-          temp.c \
-          gas.c \
-          msg.c
+SOURCES = msg.c
+
+ifeq ($(TARGET),tiva)
+TIVA_SRCS = gas.c \
+            temp.c \
+            tiva.c \
+            startup_gcc.c 
+
+SOURCES += $(TIVA_SRCS)
 
 FREE_RTOS_SRCS = tasks.c \
               queue.c \
@@ -56,6 +85,15 @@ FREE_RTOS_TCP_SRCS = FreeRTOS_IP.c \
                     eth.c
 
 SOURCES += $(FREE_RTOS_SRCS) $(FREE_RTOS_TCP_SRCS)
+endif
+
+ifeq ($(TARGET),bbg)
+BBG_SRCS = bbg.c \
+           speak.c \
+           log.c 
+
+SOURCES += BBG_SRCS 
+endif
 
 # INCLUDES: list of includes, by default, use Includes directory
 INCLUDES = -Iinc \
@@ -67,10 +105,12 @@ INCLUDES = -Iinc \
         
 # BUILDDIR: directory to use for output
 BUILDDIR = build
-# TIVAWARE_PATH: path to tivaware folder
-TIVAWARE_PATH = /home/ben/Repos/tivaware
 # BINDIR: directory for binary output
 BINDIR = bin
+
+ifeq ($(TARGET),tiva)
+# TIVAWARE_PATH: path to tivaware folder
+TIVAWARE_PATH = /home/ben/Repos/tivaware
 
 # LD_SCRIPT: linker script
 LD_SCRIPT = $(MCU).ld
@@ -81,23 +121,39 @@ CFLAGS = -g -mthumb -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard
 CFLAGS +=-O0 -ffunction-sections -fdata-sections -MD -std=c99 -Wall
 CFLAGS += -pedantic -DPART_$(MCU) -c $(INCLUDES) 
 CFLAGS += -DTARGET_IS_TM4C129_RA1 -D__TI_VFP_SUPPORT__ -DPART_TM4C1294NCPDT
-LDFLAGS = -T $(LD_SCRIPT) -Wl,-eResetISR -Wl,--gc-sections -g -mthumb -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -ffunction-sections -fdata-sections -MD -std=c99 -Wall 
+LDFLAGS = -L$(TIVAWARE_PATH)/driverlib/gcc -ldriver -T $(LD_SCRIPT) -Wl,-eResetISR -Wl,--gc-sections -g -mthumb -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -ffunction-sections -fdata-sections -MD -std=c99 -Wall 
+endif
 
+ifeq ($(TARGET),bbg)
+CFLAGS = -std=gnu99 -g -O0 -Wall -Wextra -Wno-unused-parameter -Wno-unused-variable $(INCLUDES)
+LDFLAGS = LDFLAGS = -lrt -lmraa -pthread -lm
+endif
 
 #######################################
 
 #######################################
 # binaries
 #######################################
-CC = arm-none-eabi-gcc
-LD = arm-none-eabi-gcc
-OBJCOPY = arm-none-eabi-objcopy
 RM      = rm -f
 MKDIR	= mkdir -p
 MV      = mv
+
+ifeq ($(TARGET),tiva)
+CC = arm-none-eabi-gcc
+LD = arm-none-eabi-gcc
+OBJCOPY = arm-none-eabi-objcopy
 FLASH   = lm4flash
 GDB     = arm-none-eabi-gdb
 GDB_CMD = -ex 'target extended-remote | openocd -f board/ek-tm4c1294xl.cfg -c "gdb_port pipe; log_output openocd.log"; monitor reset; monitor halt'
+endif
+
+ifeq ($TARGET),bbg)
+CC = gcc
+LD = gcc
+OBJCOPY = objcopy
+GDB = gdb
+
+endif
 
 #######################################
 
@@ -120,7 +176,7 @@ $(BUILDDIR)/%.o: %.c | $(BUILDDIR)
 	$(CC) -o $@ $^ $(CFLAGS)
 
 $(BUILDDIR)/$(TARGET).out: $(OBJECTS)
-	$(LD) -o $@ $^ -L$(TIVAWARE_PATH)/driverlib/gcc -ldriver $(LDFLAGS) 
+	$(LD) -o $@ $^ $(LDFLAGS) 
 
 $(BUILDDIR)/$(TARGET).bin: $(BUILDDIR)/$(TARGET).out
 	$(OBJCOPY) -O binary $< $@
