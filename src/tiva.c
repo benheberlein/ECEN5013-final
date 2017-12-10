@@ -132,11 +132,11 @@ void tiva_open_socket(void) {
         ret = FreeRTOS_connect(tiva_socket, &server, sizeof(struct freertos_sockaddr));
     }
 
-    if (ret == 0) {
+/*    if (ret == 0) {
         char str[32] = "Hello world!\n";
         FreeRTOS_send(tiva_socket, str, 32, 0);
     }
-
+*/
     return;
 
 }

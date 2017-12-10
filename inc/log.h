@@ -47,8 +47,8 @@
  */
 #define LOG_FMT(df, fr, lvl, tx, ...) do { (tx).devf = (df); \
                                        (tx).from = (fr); \
-                                       (tx).devt = DEFS_ID_BBG; \
-                                       (tx).to = DEFS_TASK_LOG; \
+                                       (tx).devt = 0; \
+                                       (tx).to = 2; \
                                        (tx).cmd = LOG_LOG; \
                                        (tx).data[0] = (lvl); \
                                        sprintf((char *) &((tx).data[1]), __VA_ARGS__); \
