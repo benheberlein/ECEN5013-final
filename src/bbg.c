@@ -47,14 +47,14 @@ static char *log_name;
 static pthread_t main_tasks[DEFS_NUM_TASKS_BBG];
 static struct sockaddr_in server_address;
 static int socket_conn = 0;
-static char socket_buf[MSG_SIZE];
+static msg_t socket_msg;
 static pthread_t socket_task;
 
 void *bbg_socket_helper(void *p) {
     /* Get socket and initialize */
     int fd = socket(AF_INET, SOCK_STREAM, 0);
     memset(&server_address, '0', sizeof(server_address));
-    memset(socket_buf, '0', sizeof(socket_buf));
+    memset(&socket_msg, '0', sizeof(socket_msg));
 
     /* Set up connection */
     server_address.sin_family = AF_INET;
@@ -69,8 +69,10 @@ void *bbg_socket_helper(void *p) {
     socket_conn = accept(fd, (struct sockaddr *) NULL, NULL);
 
     while(1) {
-        read(socket_conn, socket_buf, MSG_SIZE);
-        printf((char*)socket_buf);
+        read(socket_conn, &socket_msg, MSG_SIZE);
+        
+        /* Send to message queue */
+        msg_send(&socket_msg);
     }
 } 
 
