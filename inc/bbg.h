@@ -30,6 +30,7 @@
  * @brief Error codes 
  */
 #define BBG_SUCCESS     0
+#define BBG_ERR_INIT    1
 #define BBG_ERR_STUB    126
 #define BBG_ERR_UKNOWN  127
 
@@ -63,6 +64,6 @@ uint8_t bbg_exit(msg_t *rx);
 /**
  * @brief Main task 
  */
-int main(void);
+int main(int argc, char **argv);
 
 #endif /*__BBG_H__*/

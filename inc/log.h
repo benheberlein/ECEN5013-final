@@ -32,6 +32,9 @@
  * @brief Error codes
  */
 #define LOG_SUCCESS     0
+#define LOG_ERR_INIT    1
+#define LOG_ERR_FILE    2
+#define LOG_ERR_UNINIT  3
 #define LOG_ERR_STUB    126
 #define LOG_ERR_UNKNOWN 127
 
@@ -44,6 +47,8 @@
  */
 #define LOG_FMT(df, fr, lvl, tx, ...) do { (tx).devf = (df); \
                                        (tx).from = (fr); \
+                                       (tx).devt = DEFS_ID_BBG; \
+                                       (tx).to = DEFS_TASK_LOG; \
                                        (tx).cmd = LOG_LOG; \
                                        (tx).data[0] = (lvl); \
                                        sprintf((char *) &((tx).data[1]), __VA_ARGS__); \
@@ -106,5 +111,11 @@ uint8_t log_kill(msg_t *rx);
  * @brief Private functions
  * ------------------------
  */
+
+/* Log terminate handler */
+void log_terminate(void *arg);
+
+/* Log task */
+void *log_task(void *p);
 
 #endif /*__LOG_H__*/

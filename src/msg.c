@@ -33,6 +33,19 @@ uint8_t msg_route(msg_t *rx) {
     }
 #endif
 
+#ifdef TARGET_BBG
+    if (rx->devt != DEFS_ID_BBG) {
+        return MSG_ERR_ROUTE;
+    } 
+
+    if (rx->to == DEFS_TASK_BBG) {
+        return MSG_ERR_ROUTE;
+    }
+
+    mq_send(msg_queues[rx->to], (char *) rx, MSG_SIZE, 0);
+
+#endif
+
     return MSG_SUCCESS;
 }
 

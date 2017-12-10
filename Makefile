@@ -175,7 +175,7 @@ tiva: $(BUILDDIR)/$(TARGET).bin $(BINDIR)
 	$(MV) $(BUILDDIR)/$(TARGET).out $(BINDIR)/$(TARGET).out
 
 bbg: $(BUILDDIR)/$(TARGET).bin $(BINDIR)
-	$(MV) $(BUILDDIR)/$(TARGET).bin $(BINDIR)/$(TARGET).bin
+	$(MV) $(BUILDDIR)/$(TARGET).out $(BINDIR)/$(TARGET).out
 
 $(BUILDDIR)/%.o: %.c | $(BUILDDIR)
 	$(CC) -o $@ $^ $(CFLAGS)
