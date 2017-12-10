@@ -56,6 +56,11 @@
 #define TEMP_REG_CTRL_EM    (1<<4)
 
 /**
+ * @brief Heartbeat time
+ */
+#define TEMP_HEARTBEAT_MS   100
+
+/**
  * @brief Conversion rates
  */
 #define TEMP_CONV_0_25HZ 0

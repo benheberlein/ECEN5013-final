@@ -24,6 +24,10 @@
 #ifndef __LOG_H__
 #define __LOG_H__
 
+#include "msg.h"
+#include "stdint.h"
+#include "stdio.h"
+
 /**
  * @brief Error codes
  */
@@ -32,9 +36,43 @@
 #define LOG_ERR_UNKNOWN 127
 
 /**
+ * @brief Log format macro
+ *
+ * Can format strings with sprintf. Can be used by requesting threads to format
+ * data before requesting a log. Arguments are FROM, LOG_LEVEL, and the command
+ * packet TX to put data into.
+ */
+#define LOG_FMT(df, fr, lvl, tx, ...) do { (tx).devf = (df); \
+                                       (tx).from = (fr); \
+                                       (tx).cmd = LOG_LOG; \
+                                       (tx).data[0] = (lvl); \
+                                       sprintf((char *) &((tx).data[1]), __VA_ARGS__); \
+                                      } while (0)
+
+/**
+ * @brief Log levels
+ */
+#define LOG_LEVEL_DEBUG 0
+#define LOG_LEVEL_INFO  1
+#define LOG_LEVEL_WARN  2
+#define LOG_LEVEL_ERROR 3
+
+/**
+ * @brief Log string arrays
+ */
+static char *log_level_strings[] = {"DEBUG", "INFO", "WARN", "ERROR"};
+static char *log_task_strings[] = {"MAIN", "LIGHT", "TEMP", "LOG"};
+
+/**
  * @brief Task API Definitions
  * ---------------------------
  */
+
+#define LOG_INIT    0
+#define LOG_LOG     1
+#define LOG_SETPATH 2
+#define LOG_ALIVE   3
+#define LOG_KILL    4
 
 /**
  * @brief Initialize log

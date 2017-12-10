@@ -153,11 +153,11 @@ void main_task(void *p) {
     tiva_init_sem = xSemaphoreCreateBinary();
 
     /* Initialize TCP stack */
-    //FreeRTOS_IPInit(tiva_ip, tiva_netmask, tiva_gateway, tiva_dns, tiva_mac);
+    FreeRTOS_IPInit(tiva_ip, tiva_netmask, tiva_gateway, tiva_dns, tiva_mac);
 
     /* Wait for network and open socket*/
-    //xSemaphoreTake(tiva_init_sem, portMAX_DELAY);
-    //tiva_open_socket(); // TODO turn back on
+    xSemaphoreTake(tiva_init_sem, portMAX_DELAY);
+    tiva_open_socket(); // TODO turn back on
 
     /* Initialize the heartbeat timers */
     tiva_temp_heartbeat_timer =  xTimerCreate ("TEMP HB",
@@ -185,7 +185,7 @@ void main_task(void *p) {
             /* Send on network */
             if (rec_msg.devt != DEFS_ID_TIVA) {
                 /* TODO send over network */
-            
+                FreeRTOS_send(tiva_socket, &rec_msg, sizeof(msg_t), 0);
             /* Route to another TIVA task */
             } else if (rec_msg.to != DEFS_TASK_TIVA) {
                 msg_route(&rec_msg);

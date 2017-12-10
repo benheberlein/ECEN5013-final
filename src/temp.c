@@ -52,9 +52,11 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_Sockets.h"
 
+#include "defs.h"
 #include "msg.h"
 #include "temp.h"
 #include "tiva.h"
+#include "log.h"
 
 static TimerHandle_t temp_timer;
 static TickType_t temp_per = pdMS_TO_TICKS(1000);
@@ -97,6 +99,9 @@ uint8_t temp_i2c_init(void) {
 void temp_read(void *p) {
 
     /* TODO Send temperature data to LOG whenever we wake up */
+    msg_t tx;
+    LOG_FMT(DEFS_ID_TIVA, DEFS_TASK_TEMP, LOG_LEVEL_INFO, tx, "Checked temperature");
+    msg_send(&tx);
 
     /* TODO Send alarm data if we are out of range */
 
@@ -104,11 +109,13 @@ void temp_read(void *p) {
 
 void temp_task(void *p) {
 
-     temp_timer =  xTimerCreate ("TEMP TIMER",
+    /* Set up read timer */
+    temp_timer =  xTimerCreate ("TEMP TIMER",
                                 temp_per,
                                 pdTRUE,
                                 (void *) 0,
                                 temp_read);
+    xTimerStart(temp_timer, portMAX_DELAY);
 
     /* Heartbeat packet */
     msg_t tx;
@@ -122,7 +129,7 @@ void temp_task(void *p) {
     msg_t rx;
     while(1) {
         /* Wait for message */
-        if (!xQueueReceive(msg_queues[DEFS_TASK_TIVA], &rx, 100)) {
+        if (!xQueueReceive(msg_queues[DEFS_TASK_TIVA], &rx, TEMP_HEARTBEAT_MS)) {
             
         /* Handle message */
         } else {
@@ -148,6 +155,7 @@ void temp_task(void *p) {
             }
         }
 
+        /* Send heartbeat every time we wake up (max TEMP_HEARTBEAT_MS ms) */
         msg_send(&tx);
     }
 }
