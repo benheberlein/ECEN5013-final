@@ -90,9 +90,11 @@ endif
 ifeq ($(TARGET),bbg)
 BBG_SRCS = bbg.c \
            speak.c \
-           log.c 
+		   msg.c \
+		   log.c \
+           msg.c
 
-SOURCES += BBG_SRCS 
+SOURCES = $(BBG_SRCS)
 endif
 
 # INCLUDES: list of includes, by default, use Includes directory
@@ -120,13 +122,13 @@ CFLAGS = -g -mthumb -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard
  
 CFLAGS +=-O0 -ffunction-sections -fdata-sections -MD -std=c99 -Wall
 CFLAGS += -pedantic -DPART_$(MCU) -c $(INCLUDES) 
-CFLAGS += -DTARGET_IS_TM4C129_RA1 -D__TI_VFP_SUPPORT__ -DPART_TM4C1294NCPDT
+CFLAGS += -DTARGET_IS_TM4C129_RA1 -D__TI_VFP_SUPPORT__ -DPART_TM4C1294NCPDT -DTARGET_TIVA
 LDFLAGS = -L$(TIVAWARE_PATH)/driverlib/gcc -ldriver -T $(LD_SCRIPT) -Wl,-eResetISR -Wl,--gc-sections -g -mthumb -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -ffunction-sections -fdata-sections -MD -std=c99 -Wall 
 endif
 
 ifeq ($(TARGET),bbg)
-CFLAGS = -std=gnu99 -g -O0 -Wall -Wextra -Wno-unused-parameter -Wno-unused-variable $(INCLUDES)
-LDFLAGS = LDFLAGS = -lrt -lmraa -pthread -lm
+CFLAGS = -c -std=c99 -g -O0 -DTARGET_BBG -Wall -Wextra -Wno-unused-parameter -Wno-unused-variable $(INCLUDES)
+LDFLAGS = -lm -pthread -lrt
 endif
 
 #######################################
@@ -147,7 +149,7 @@ GDB     = arm-none-eabi-gdb
 GDB_CMD = -ex 'target extended-remote | openocd -f board/ek-tm4c1294xl.cfg -c "gdb_port pipe; log_output openocd.log"; monitor reset; monitor halt'
 endif
 
-ifeq ($TARGET),bbg)
+ifeq ($(TARGET),bbg)
 CC = gcc
 LD = gcc
 OBJCOPY = objcopy
@@ -171,6 +173,9 @@ flash-tiva: tiva
 tiva: $(BUILDDIR)/$(TARGET).bin $(BINDIR)
 	$(MV) $(BUILDDIR)/$(TARGET).bin $(BINDIR)/$(TARGET).bin
 	$(MV) $(BUILDDIR)/$(TARGET).out $(BINDIR)/$(TARGET).out
+
+bbg: $(BUILDDIR)/$(TARGET).bin $(BINDIR)
+	$(MV) $(BUILDDIR)/$(TARGET).bin $(BINDIR)/$(TARGET).bin
 
 $(BUILDDIR)/%.o: %.c | $(BUILDDIR)
 	$(CC) -o $@ $^ $(CFLAGS)

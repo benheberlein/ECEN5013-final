@@ -23,6 +23,9 @@
 #ifndef __BBG_H__
 #define __BBG_H__
 
+#include "stdint.h"
+#include "msg.h"
+
 /**
  * @brief Error codes 
  */
@@ -34,6 +37,9 @@
  * @brief Task API Definitions
  * ---------------------------
  */
+
+#define BBG_HEARTBEAT 0
+#define BBG_EXIT 1
 
 /**
  * @brief BBG heartbeat handler

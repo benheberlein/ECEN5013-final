@@ -20,14 +20,19 @@
  *
  */
 
+#include "bbg.h"
+
 uint8_t bbg_heartbeat(msg_t *rx) {
 
+    return BBG_ERR_STUB;	
 }
 
 uint8_t bbg_exit(msg_t *rx) {
 
+    return BBG_ERR_STUB;
 }
 
 int main(void) {
 
+    return 0;
 }

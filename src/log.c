@@ -21,18 +21,26 @@
  *
  */
 
+#include "msg.h"
+#include "stdint.h"
+#include "log.h"
+
 uint8_t log_init(msg_t *rx) {
 
+    return LOG_ERR_STUB;
 }
 
 uint8_t log_log(msg_t *rx) {
 
+    return LOG_ERR_STUB;
 }
 
 uint8_t log_setpath(msg_t *rx) {
 
+    return LOG_ERR_STUB;
 }
 
 uint8_t log_kill(msg_t *rx) {
 
+    return LOG_ERR_STUB;
 }

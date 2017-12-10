@@ -26,6 +26,7 @@
 
 #include <stdint.h>
 
+#ifdef TARGET_TIVA
 #include "FreeRTOS.h"
 #include "task.h"
 #include "queue.h"
@@ -33,6 +34,11 @@
 #include "semphr.h"
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_Sockets.h"
+#endif
+
+#ifdef TARGET_BBG
+#include <mqueue.h>
+#endif
 
 #include "defs.h"
 
@@ -68,18 +74,18 @@ typedef struct __attribute((packed)) msg_s {
 /**
  * @brief Queue descriptions
  */
+#ifdef TARGET_TIVA
 #define MSG_QUEUE_NUM 3
 QueueHandle_t msg_queues[MSG_QUEUE_NUM];
-
+#endif
 
 #ifdef TARGET_BBG
-#define MSG_QUEUE_NUM 4
+#define MSG_QUEUE_NUM 3
 #define MSG_QUEUE_PERM  0666
 mqd_t msg_queues[MSG_QUEUE_NUM];
 struct mq_attr msg_attrs[MSG_QUEUE_NUM];
-static const char *msg_names[] = {"/mainqueue",
-      		                        "/lightqueue",
-            	    	            "/tempqueue",
+static const char *msg_names[] = {"/bbgqueue",
+      		                        "/speakqueue",
                           		    "/logqueue"};
 #endif
 

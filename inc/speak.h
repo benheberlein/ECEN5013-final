@@ -35,6 +35,10 @@
  * ---------------------------
  */
 
+#define SPEAK_INIT  0
+#define SPEAK_SPEAK 1
+#define SPEAK_KILL  2
+
 /**
  * @brief Initialize speaker
  *

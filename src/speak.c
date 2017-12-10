@@ -20,14 +20,21 @@
  *
  */
 
-uint8_t speak_init(msg_t *rx) {
+#include "msg.h"
+#include "speak.h"
+#include "bbg.h"
 
+uint8_t speak_init(msg_t *rx) {
+    
+    return SPEAK_ERR_STUB;
 }
 
 uint8_t speak_speak(msg_t *rx) {
 
+    return SPEAK_ERR_STUB;
 }
 
 uint8_t speak_kill(msg_t *rx) {
 
+    return SPEAK_ERR_STUB;
 }
