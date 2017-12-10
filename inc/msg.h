@@ -84,6 +84,11 @@ static const char *msg_names[] = {"/mainqueue",
 #endif
 
 /**
+ * @brief Route message internally
+ */
+uint8_t msg_route(msg_t *rx);
+
+/**
  * @brief Send a message
  */ 
 uint8_t msg_send(msg_t *tx);

@@ -64,14 +64,23 @@ static const uint8_t tiva_netmask[4] = {TIVA_NETMASK0, TIVA_NETMASK1, TIVA_NETMA
 static const uint8_t tiva_gateway[4] = {TIVA_GATEWAY0, TIVA_GATEWAY1, TIVA_GATEWAY2, TIVA_GATEWAY3};
 static const uint8_t tiva_dns[4] = {TIVA_DNS0, TIVA_DNS1, TIVA_DNS2, TIVA_DNS3};
 
-/* Initialization flag (small state machine on network init) */
-static uint8_t tiva_init_flag = 0;
-
 /* Network init semaphore */
 SemaphoreHandle_t tiva_init_sem;
 
 /* Client socket */
 Socket_t tiva_socket;
+
+/* Heartbeat timers */
+void tiva_temp_heartbeat(void *p) {
+    /* TODO Restart the task and log */   
+}
+
+void tiva_gas_heartbeat(void *p) {
+    /* TODO Restart the task log */
+}
+
+TimerHandle_t tiva_temp_heartbeat_timer;
+TimerHandle_t tiva_gas_heartbeat_timer;
 
 /* Ping hook for FreeRTOS+TCP */
 void vApplicationPingReplyHook(ePingReplyStatus_t status, uint16_t id) {
@@ -85,15 +94,16 @@ void vApplicationIPNetworkEventHook(eIPCallbackEvent_t event) {
         /* Turn on LED */
         GPIOPinWrite(GPIO_PORTN_BASE, GPIO_PIN_0, GPIO_PIN_0);
 
+        vTaskDelay(500);
+
         /* Send signal to init socket */
-        xSemaphoreGive(tiva_init_sem);
+        int ret = xSemaphoreGive(tiva_init_sem);
 
     } 
 }
 
 void tiva_open_socket(void) {
     static const TickType_t timeOut = pdMS_TO_TICKS(5000);
-    BaseType_t bytes_sent = 0;
     tiva_socket = FreeRTOS_socket(FREERTOS_AF_INET,
                                     FREERTOS_SOCK_STREAM,
                                     FREERTOS_IPPROTO_TCP);
@@ -124,7 +134,7 @@ void tiva_open_socket(void) {
 
     if (ret == 0) {
         char str[32] = "Hello world!\n";
-        bytes_sent = FreeRTOS_send(tiva_socket, str, 32, 0);
+        FreeRTOS_send(tiva_socket, str, 32, 0);
     }
 
     return;
@@ -143,26 +153,58 @@ void main_task(void *p) {
     tiva_init_sem = xSemaphoreCreateBinary();
 
     /* Initialize TCP stack */
-    FreeRTOS_IPInit(tiva_ip, tiva_netmask, tiva_gateway, tiva_dns, tiva_mac);
+    //FreeRTOS_IPInit(tiva_ip, tiva_netmask, tiva_gateway, tiva_dns, tiva_mac);
 
     /* Wait for network and open socket*/
-    xSemaphoreTake(tiva_init_sem, portMAX_DELAY);
+    //xSemaphoreTake(tiva_init_sem, portMAX_DELAY);
     //tiva_open_socket(); // TODO turn back on
+
+    /* Initialize the heartbeat timers */
+    tiva_temp_heartbeat_timer =  xTimerCreate ("TEMP HB",
+                                                pdMS_TO_TICKS(TIVA_HEARTBEAT_PERIOD),
+                                                pdTRUE,
+                                                (void *) 0,
+                                                tiva_temp_heartbeat);
+
+    tiva_gas_heartbeat_timer =  xTimerCreate ("GAS HB",
+                                               pdMS_TO_TICKS(TIVA_HEARTBEAT_PERIOD),
+                                               pdTRUE,
+                                               (void *) 0,
+                                               tiva_gas_heartbeat);
+    
+    xTimerStart(tiva_temp_heartbeat_timer, portMAX_DELAY);
+    xTimerStart(tiva_gas_heartbeat_timer, portMAX_DELAY);
 
     msg_t rec_msg;
     while(1) {
         /* Recieve message or time out */
         if (!xQueueReceive(msg_queues[DEFS_TASK_TIVA], &rec_msg, 1000)) {    
-            int a = 0;
+           int a = 0; 
         /* Route message */
         } else {
-            int b = 0;
+            /* Send on network */
+            if (rec_msg.devt != DEFS_ID_TIVA) {
+                /* TODO send over network */
+            
+            /* Route to another TIVA task */
+            } else if (rec_msg.to != DEFS_TASK_TIVA) {
+                msg_route(&rec_msg);
+
+            /* Handle message */
+            } else {
+                /* TODO TIVA API */
+                switch(rec_msg.cmd) {
+                    case TIVA_HEARTBEAT:
+                        tiva_heartbeat(&rec_msg);
+                        break;
+                    case TIVA_EXIT:
+                        tiva_exit(&rec_msg);
+                    break;
+                    default:
+                        break;
+                }
+            }
         }
-        /* Init or reinit socket connection */
-    //    if (tiva_init_flag == 1) {
-    //        tiva_init_flag = 0;
-    //        tiva_open_socket();
-    //    }
     }
 }
 
@@ -179,8 +221,8 @@ int main() {
 
     /* Create tasks */
 //    xTaskCreate(gas_task, (const portCHAR*)"GAS", configMINIMAL_STACK_SIZE, NULL, 2, NULL);
-    xTaskCreate(main_task, (const portCHAR*)"MAIN", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
-    xTaskCreate(temp_task, (const portCHAR*)"TEMP", configMINIMAL_STACK_SIZE, NULL, 2, NULL);
+    xTaskCreate(main_task, (const portCHAR*)"MAIN", configMINIMAL_STACK_SIZE, NULL, 2, NULL);
+    xTaskCreate(temp_task, (const portCHAR*)"TEMP", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
 
     /* Start Scheduler */
     vTaskStartScheduler();
@@ -193,7 +235,13 @@ int main() {
 
 uint8_t tiva_heartbeat(msg_t *rx) {
 
-    return TIVA_ERR_STUB;
+    if (rx->from == DEFS_TASK_TEMP) {
+        xTimerReset(tiva_temp_heartbeat_timer, portMAX_DELAY);
+    } else if (rx->from == DEFS_TASK_GAS) {
+        xTimerReset(tiva_gas_heartbeat_timer, portMAX_DELAY);
+    }
+
+    return TIVA_SUCCESS;
 }
 
 uint8_t tiva_exit(msg_t *rx) {

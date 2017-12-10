@@ -75,10 +75,15 @@
 #define TIVA_SERVER2 0
 #define TIVA_SERVER3 13
 
+#define TIVA_HEARTBEAT_PERIOD 500
+
 /**
  * @brief Task API Definitions
  * ---------------------------
  */
+
+#define TIVA_HEARTBEAT  0
+#define TIVA_EXIT       1
 
 /**
  * @brief TIVA heartbeat handler
