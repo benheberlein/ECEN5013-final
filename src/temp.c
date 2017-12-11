@@ -178,19 +178,30 @@ void temp_read(void *p) {
     /* Send temperature data to LOG whenever we wake up */
     msg_t tx;
     /* Use itoa because sprintf won't build on TIVA */
-    LOG_FMT(DEFS_ID_TIVA, DEFS_TASK_TEMP, LOG_LEVEL_INFO, tx, "Temperature is");//, temperature);
-    msg_send(&tx);
-
-    tx.to = DEFS_TASK_SPEAK;
-    char str[50] = "Temperature is ";
     char buf[10];
     itoa(round(temperature), buf);
+    char str[50] = "Temperature is ";
     strcat(str, buf);
     strcat(str, " degrees C");
+    tx.devf = DEFS_ID_TIVA;
+    tx.from = DEFS_TASK_TEMP;
+    tx.devt = DEFS_ID_BBG;
+    tx.to   = DEFS_TASK_LOG;
+    tx.cmd  = LOG_LOG;
     memcpy(tx.data, str, 50);
+    msg_send(&tx);
 
-    /* TODO Send alarm data if we are out of range */
-    
+    /* Send alarm data if we are out of range */
+    if (temperature < 26) {
+        tx.to = DEFS_TASK_SPEAK;
+        memcpy(tx.data, str, 50);
+        msg_send(&tx);
+    } else {
+        tx.to = DEFS_TASK_SPEAK;
+        char str2[50] = "Something is on fire, please evacuate!";
+        memcpy(tx.data, str2, 50);
+        msg_send(&tx);
+    }
 
 }
 
