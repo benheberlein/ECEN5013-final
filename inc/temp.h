@@ -35,7 +35,7 @@
 /**
  * @brief I2C and sensor macros
  */
-#define TEMP_I2C_BUS  2
+#define TEMP_I2C_BUS  0
 #define TEMP_I2C_ADDR 0x48
 #define TEMP_REG_TEMP 0x00
 #define TEMP_REG_CTRL 0x01
@@ -72,6 +72,11 @@
  * @brief Resolution per DN (C)
  */
 #define TEMP_RES 0.0625
+
+/**
+ * @brief Initial period
+ */
+#define TEMP_PER 5000
 
 /**
  * @brief Format strings

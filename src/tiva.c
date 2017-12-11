@@ -49,6 +49,7 @@
 #include "gas.h"
 #include "msg.h"
 #include "defs.h"
+#include "log.h"
 
 /* MAC address */
 static const uint8_t tiva_mac[6] = {TIVA_MAC0, 
@@ -81,6 +82,8 @@ void tiva_gas_heartbeat(void *p) {
 
 TimerHandle_t tiva_temp_heartbeat_timer;
 TimerHandle_t tiva_gas_heartbeat_timer;
+
+uint8_t temp_init_flag = 0;
 
 /* Ping hook for FreeRTOS+TCP */
 void vApplicationPingReplyHook(ePingReplyStatus_t status, uint16_t id) {
@@ -132,11 +135,10 @@ void tiva_open_socket(void) {
         ret = FreeRTOS_connect(tiva_socket, &server, sizeof(struct freertos_sockaddr));
     }
 
-/*    if (ret == 0) {
-        char str[32] = "Hello world!\n";
-        FreeRTOS_send(tiva_socket, str, 32, 0);
-    }
-*/
+    msg_t tx;
+    LOG_FMT(DEFS_ID_TIVA, DEFS_TASK_TIVA, LOG_LEVEL_INFO, tx, "Initialized network connection");
+    msg_send(&tx);    
+
     return;
 
 }
@@ -157,7 +159,7 @@ void main_task(void *p) {
 
     /* Wait for network and open socket*/
     xSemaphoreTake(tiva_init_sem, portMAX_DELAY);
-    tiva_open_socket(); // TODO turn back on
+    tiva_open_socket();
 
     /* Initialize the heartbeat timers */
     tiva_temp_heartbeat_timer =  xTimerCreate ("TEMP HB",
@@ -175,16 +177,26 @@ void main_task(void *p) {
     xTimerStart(tiva_temp_heartbeat_timer, portMAX_DELAY);
     xTimerStart(tiva_gas_heartbeat_timer, portMAX_DELAY);
 
+    /* Initialize temperature */
+/*    msg_t tx;
+    tx.devf = DEFS_ID_TIVA;
+    tx.from = DEFS_TASK_TIVA;
+    tx.devt = DEFS_ID_TIVA;
+    tx.to   = DEFS_TASK_TEMP;
+    tx.cmd  = TEMP_INIT;
+    tx.data[0] = 0;
+    msg_send(&tx);
+*/
     msg_t rec_msg;
     while(1) {
         /* Recieve message or time out */
         if (!xQueueReceive(msg_queues[DEFS_TASK_TIVA], &rec_msg, 1000)) {    
-           int a = 0; 
+        
         /* Route message */
         } else {
             /* Send on network */
             if (rec_msg.devt != DEFS_ID_TIVA) {
-                /* TODO send over network */
+                /* Send over network */
                 FreeRTOS_send(tiva_socket, &rec_msg, sizeof(msg_t), 0);
             /* Route to another TIVA task */
             } else if (rec_msg.to != DEFS_TASK_TIVA) {
@@ -192,17 +204,18 @@ void main_task(void *p) {
 
             /* Handle message */
             } else {
-                /* TODO TIVA API */
+                /* TIVA API */
                 switch(rec_msg.cmd) {
                     case TIVA_HEARTBEAT:
                         tiva_heartbeat(&rec_msg);
                         break;
                     case TIVA_EXIT:
                         tiva_exit(&rec_msg);
-                    break;
+                        break;
                     default:
                         break;
                 }
+                
             }
         }
     }

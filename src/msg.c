@@ -16,6 +16,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include "defs.h"
+#include "tiva.h"
 
 uint8_t msg_route(msg_t *rx) {
 
@@ -52,7 +53,6 @@ uint8_t msg_route(msg_t *rx) {
 uint8_t msg_send(msg_t *tx) {
  
 #ifdef TARGET_TIVA   
-    /* Always send to main thread, handles socket */
     if (!xQueueSend(msg_queues[DEFS_TASK_TIVA], tx, 500)) {
         return MSG_ERR_FAIL;   
     }

@@ -24,6 +24,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
+#include <math.h>
 
 /* Tivaware includes */
 #include "inc/hw_emac.h"
@@ -59,15 +61,85 @@
 #include "log.h"
 
 static TimerHandle_t temp_timer;
-static TickType_t temp_per = pdMS_TO_TICKS(1000);
+static TickType_t temp_per = pdMS_TO_TICKS(TEMP_PER);
+
+/* Reverse from K&R C Programming Language */
+static void reverse(char s[]) {
+    int i, j;
+    char c;
+ 
+    for (i = 0, j = strlen(s)-1; i<j; i++, j--) {
+        c = s[i];
+        s[i] = s[j];
+        s[j] = c;
+    }
+}
+
+/* Itoa from K&R C Programming Language */
+static void itoa(int n, char s[]) {
+    int i, sign;
+ 
+    if ((sign = n) < 0)  /* record sign */
+         n = -n;          /* make n positive */
+    i = 0;
+    do {       /* generate digits in reverse order */
+        s[i++] = n % 10 + '0';   /* get next digit */
+    } while ((n /= 10) > 0);     /* delete it */
+    if (sign < 0)
+        s[i++] = '-';
+    s[i] = '\0';
+    reverse(s);
+}
+
+float temp_conv(uint16_t data) {
+    /* Get temperature */
+    data = data >> 4;
+    float c = 0;
+
+    /* Convert to deg C */
+    if (data & 0x0800) {
+        data = ((~data) & 0x0fff) + 1;
+        c = data * -TEMP_RES;
+    } else {
+        c = data * TEMP_RES;
+    }
+    return c;
+
+}
 
 uint16_t temp_i2c_read(uint8_t address) {
 
-    return 0;
+    uint8_t data_low = 0;
+    uint8_t data_high = 0;
+
+    I2CMasterSlaveAddrSet(I2C0_BASE, 0x48, false);
+    I2CMasterDataPut(I2C0_BASE, address);
+    I2CMasterControl(I2C0_BASE, I2C_MASTER_CMD_SINGLE_SEND);
+    while(I2CMasterBusy(I2C0_BASE)) {}
+    I2CMasterSlaveAddrSet(I2C0_BASE, 0x48, true);
+    I2CMasterControl(I2C0_BASE, I2C_MASTER_CMD_BURST_RECEIVE_START);
+    while(I2CMasterBusy(I2C0_BASE)) {}
+    data_high = I2CMasterDataGet(I2C0_BASE);
+    I2CMasterControl(I2C0_BASE, I2C_MASTER_CMD_BURST_RECEIVE_FINISH);
+    while(I2CMasterBusy(I2C0_BASE)) {}
+    data_low = I2CMasterDataGet(I2C0_BASE);
+
+    return (data_high << 8) | data_low;
 }
 
 
 void temp_i2c_write(uint16_t data, uint8_t address) {
+
+    I2CMasterSlaveAddrSet(I2C0_BASE, 0x48, false);
+    I2CMasterDataPut(I2C0_BASE, address);
+    I2CMasterControl(I2C0_BASE, I2C_MASTER_CMD_BURST_SEND_START);
+    while(I2CMasterBusy(I2C0_BASE)) {}
+    I2CMasterDataPut(I2C0_BASE, data >> 8);
+    I2CMasterControl(I2C0_BASE, I2C_MASTER_CMD_BURST_SEND_CONT);
+    while(I2CMasterBusy(I2C0_BASE)) {}
+    I2CMasterDataPut(I2C0_BASE, data & 0xff);
+    I2CMasterControl(I2C0_BASE, I2C_MASTER_CMD_BURST_SEND_FINISH);
+    while(I2CMasterBusy(I2C0_BASE)) {}
 
     return;
 }
@@ -90,6 +162,9 @@ uint8_t temp_i2c_init(void) {
     GPIOPinTypeI2CSCL(GPIO_PORTB_BASE, GPIO_PIN_2);
     GPIOPinTypeI2C(GPIO_PORTB_BASE, GPIO_PIN_3);
 
+    /* Wait for I2C 0 */
+    while(!SysCtlPeripheralReady(SYSCTL_PERIPH_I2C0)) {}
+
     /* Init master */
     I2CMasterInitExpClk(I2C0_BASE, SysCtlClockGet(), false);
 
@@ -98,16 +173,30 @@ uint8_t temp_i2c_init(void) {
 
 void temp_read(void *p) {
 
-    /* TODO Send temperature data to LOG whenever we wake up */
+    float temperature = temp_conv(temp_i2c_read(TEMP_REG_TEMP));
+
+    /* Send temperature data to LOG whenever we wake up */
     msg_t tx;
-    LOG_FMT(DEFS_ID_TIVA, DEFS_TASK_TEMP, LOG_LEVEL_INFO, tx, "Checked temperature");
+    /* Use itoa because sprintf won't build on TIVA */
+    LOG_FMT(DEFS_ID_TIVA, DEFS_TASK_TEMP, LOG_LEVEL_INFO, tx, "Temperature is");//, temperature);
     msg_send(&tx);
 
+    tx.to = DEFS_TASK_SPEAK;
+    char str[50] = "Temperature is ";
+    char buf[10];
+    itoa(round(temperature), buf);
+    strcat(str, buf);
+    strcat(str, " degrees C");
+    memcpy(tx.data, str, 50);
+
     /* TODO Send alarm data if we are out of range */
+    
 
 }
 
 void temp_task(void *p) {
+    /* Initialize self */
+    temp_init(NULL);        
 
     /* Set up read timer */
     temp_timer =  xTimerCreate ("TEMP TIMER",
@@ -129,11 +218,11 @@ void temp_task(void *p) {
     msg_t rx;
     while(1) {
         /* Wait for message */
-        if (!xQueueReceive(msg_queues[DEFS_TASK_TIVA], &rx, TEMP_HEARTBEAT_MS)) {
+        if (!xQueueReceive(msg_queues[DEFS_TASK_TEMP], &rx, TEMP_HEARTBEAT_MS)) {
             
         /* Handle message */
         } else {
-            /* TODO Temp API */
+            /* Temp API */
             switch(rx.cmd) {
                 case TEMP_INIT:
                     temp_init(&rx);
@@ -162,7 +251,9 @@ void temp_task(void *p) {
 
 uint8_t temp_init(msg_t *rx) {
 
-    return TEMP_ERR_STUB;
+    temp_i2c_init();
+
+    return TEMP_SUCCESS;
 
 }
 
