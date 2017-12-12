@@ -270,21 +270,31 @@ uint8_t temp_init(msg_t *rx) {
 }
 
 uint8_t temp_shutdown(msg_t *rx) {
+    uint16_t data = temp_i2c_read(TEMP_REG_CTRL);
+    data |= TEMP_REG_CTRL_SD;
 
-    return TEMP_ERR_STUB;
+    temp_i2c_write(TEMP_REG_CTRL, data);
+
+    return TEMP_SUCCESS;
 }
 
 uint8_t temp_wakeup(msg_t *rx) {
+    uint16_t data = temp_i2c_read(TEMP_REG_CTRL);
+    data &= ~TEMP_REG_CTRL_SD;
 
-    return TEMP_ERR_STUB;
+    temp_i2c_write(TEMP_REG_CTRL, data);
+
+    return TEMP_SUCCESS;
 }
 
 uint8_t temp_period(msg_t *rx) {
+    temp_per = *((uint32_t *) rx->data);
 
-    return TEMP_ERR_STUB;
+    return TEMP_SUCCESS;
 }
 
 uint8_t temp_kill(msg_t *rx) {
+    vTaskDelete(NULL);
 
-    return TEMP_ERR_STUB;
+    return TEMP_SUCCESS;
 }
