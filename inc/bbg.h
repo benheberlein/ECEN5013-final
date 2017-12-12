@@ -35,6 +35,11 @@
 #define BBG_ERR_UKNOWN  127
 
 /**
+ * @brief Heartbeat check in ns
+ */
+#define BBG_HEARTBEAT_PERIOD    300000000
+
+/**
  * @brief Task API Definitions
  * ---------------------------
  */

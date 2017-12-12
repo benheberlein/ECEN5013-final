@@ -177,16 +177,6 @@ void main_task(void *p) {
     xTimerStart(tiva_temp_heartbeat_timer, portMAX_DELAY);
     xTimerStart(tiva_gas_heartbeat_timer, portMAX_DELAY);
 
-    /* Initialize temperature */
-/*    msg_t tx;
-    tx.devf = DEFS_ID_TIVA;
-    tx.from = DEFS_TASK_TIVA;
-    tx.devt = DEFS_ID_TIVA;
-    tx.to   = DEFS_TASK_TEMP;
-    tx.cmd  = TEMP_INIT;
-    tx.data[0] = 0;
-    msg_send(&tx);
-*/
     msg_t rec_msg;
     while(1) {
         /* Recieve message or time out */
@@ -258,6 +248,7 @@ uint8_t tiva_heartbeat(msg_t *rx) {
 }
 
 uint8_t tiva_exit(msg_t *rx) {
+    /* Exit program */
 
     return TIVA_ERR_STUB;
 

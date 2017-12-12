@@ -49,6 +49,8 @@ static struct sockaddr_in server_address;
 static int socket_conn = 0;
 static msg_t socket_msg;
 static pthread_t socket_task;
+static timer_t bbg_log_timer;
+static timer_t bbg_speak_timer;
 
 void *bbg_socket_helper(void *p) {
     /* Get socket and initialize */
@@ -76,12 +78,44 @@ void *bbg_socket_helper(void *p) {
     }
 } 
 
-uint8_t bbg_heartbeat(msg_t *rx) {
+void bbg_init_timer(timer_t tmr) {
+    struct itimerspec ts;
+    struct sigevent se;
 
-    return BBG_ERR_STUB;	
+    se.sigev_notify = SIGEV_THREAD;
+    se.sigev_value.sival_ptr = &log_tmr;
+    se.sigev_notify_function = ;
+    se.sigev_notify_attributes = NULL;
+
+    ts.it_value.tv_sec = 0;
+    ts.it_value.tv_nsec = BBG_HEARTBEAT_PERIOD;
+    ts.it_interval.tv_sec = 0;
+    ts.it_interval.tv_nsec = 0;
+
+    timer_create(CLOCK_REALTIME, &se, &tmr);
+    timer_settime(tmr, 0, &ts, 0);
+}
+
+void bbg_log_heartbeat_timer(union sigval arg) {
+    /* Restart thread */
+}
+
+void bbg_speak_heartbeat_timer(union sigval arg) {
+    /* Restart thread */
+}
+
+uint8_t bbg_heartbeat(msg_t *rx) {
+    if (rx->from == DEFS_TASK_LOG) {
+        bbg_init_timer(bbg_log_timer);
+    } else if (rx->from == DEFS_TASK_SPEAK) {
+        bbg_init_timer(bbg_speak_timer);
+    }
+
+    return BBG_SUCCESS;	
 }
 
 uint8_t bbg_exit(msg_t *rx) {
+    /* Exit program */
 
     return BBG_ERR_STUB;
 }
@@ -137,9 +171,9 @@ int main(int argc, char **argv) {
     strcpy((char *) (tx.data), hello);
     msg_send(&tx); 
 
-    /* Initialize networking */
-
     /* Initialize heartbeat timers */
+    bbg_init_timer(bbg_log_timer);
+    bbg_init_timer(bbg_speak_timer);
 
     /* Open queue and start main loop */
     mqd_t rxq = mq_open(msg_names[DEFS_TASK_BBG], O_RDONLY);
@@ -149,8 +183,8 @@ int main(int argc, char **argv) {
         
         /* Send message over network */
         if (rx.devt != DEFS_ID_BBG) {
-            /* TODO send over network */
-
+            /* Send over network */
+            write(socket_conn, &rx, MSG_SIZE);
         /* Route to another BBG task */
         } else if (rx.to != DEFS_TASK_BBG) {
             msg_route(&rx);    

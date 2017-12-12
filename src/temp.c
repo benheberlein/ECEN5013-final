@@ -188,7 +188,8 @@ void temp_read(void *p) {
     tx.devt = DEFS_ID_BBG;
     tx.to   = DEFS_TASK_LOG;
     tx.cmd  = LOG_LOG;
-    memcpy(tx.data, str, 50);
+    tx.data[0] = LOG_LEVEL_INFO;
+    memcpy((tx.data+1), str, 50);
     msg_send(&tx);
 
     /* Send alarm data if we are out of range */
