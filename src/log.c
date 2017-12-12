@@ -133,6 +133,16 @@ uint8_t log_log(msg_t *rx) {
     fprintf(log_file, "'%s'\n", &rx->data[1]);
     fflush(log_file); 
 
+    /* Also print */
+    printf("%s\t", p);
+    if (rx->devf == DEFS_ID_BBG) {
+        printf("%s\t", log_task_strings_bbg[rx->from]);
+    } else if (rx->devf == DEFS_ID_TIVA) {
+        printf("%s\t", log_task_strings_tiva[rx->from]);
+    }
+    printf("%s\t", log_level_strings[rx->data[0]]);
+    printf("'%s'\n", &rx->data[1]);
+
     return LOG_SUCCESS;
 
 }

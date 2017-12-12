@@ -78,13 +78,13 @@ void *bbg_socket_helper(void *p) {
     }
 } 
 
-void bbg_init_timer(timer_t tmr) {
+void bbg_init_timer(timer_t tmr, void (*fun)(union sigval)) {
     struct itimerspec ts;
     struct sigevent se;
 
     se.sigev_notify = SIGEV_THREAD;
-    se.sigev_value.sival_ptr = &log_tmr;
-    se.sigev_notify_function = ;
+    se.sigev_value.sival_ptr = &tmr;
+    se.sigev_notify_function = fun;
     se.sigev_notify_attributes = NULL;
 
     ts.it_value.tv_sec = 0;
@@ -106,9 +106,9 @@ void bbg_speak_heartbeat_timer(union sigval arg) {
 
 uint8_t bbg_heartbeat(msg_t *rx) {
     if (rx->from == DEFS_TASK_LOG) {
-        bbg_init_timer(bbg_log_timer);
+        bbg_init_timer(bbg_log_timer, bbg_log_heartbeat_timer);
     } else if (rx->from == DEFS_TASK_SPEAK) {
-        bbg_init_timer(bbg_speak_timer);
+        bbg_init_timer(bbg_speak_timer, bbg_speak_heartbeat_timer);
     }
 
     return BBG_SUCCESS;	
@@ -172,8 +172,8 @@ int main(int argc, char **argv) {
     msg_send(&tx); 
 
     /* Initialize heartbeat timers */
-    bbg_init_timer(bbg_log_timer);
-    bbg_init_timer(bbg_speak_timer);
+    bbg_init_timer(bbg_log_timer, bbg_log_heartbeat_timer);
+    bbg_init_timer(bbg_speak_timer, bbg_speak_heartbeat_timer);
 
     /* Open queue and start main loop */
     mqd_t rxq = mq_open(msg_names[DEFS_TASK_BBG], O_RDONLY);

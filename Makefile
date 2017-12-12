@@ -127,7 +127,7 @@ LDFLAGS = -L$(TIVAWARE_PATH)/driverlib/gcc -ldriver -T $(LD_SCRIPT) -Wl,-eResetI
 endif
 
 ifeq ($(TARGET),bbg)
-CFLAGS = -c -std=c99 -g -O0 -DTARGET_BBG -Wall -Wextra -Wno-unused-parameter -Wno-unused-variable $(INCLUDES)
+CFLAGS = -c -std=gnu99 -g -O0 -DTARGET_BBG -Wall -Wextra -Wno-unused-parameter -Wno-unused-variable $(INCLUDES)
 LDFLAGS = -lm -pthread -lrt
 endif
 
